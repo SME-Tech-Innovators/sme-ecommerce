@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AiProductDraftError,
@@ -177,6 +178,16 @@ export function ProductFormModal({
   const [gallery, setGallery] = useState<SelectedMedia[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+
+  // Check whether the OpenAI key is configured server-side.
+  // The status endpoint never exposes the key itself.
+  const { data: aiStatus } = useQuery<{ configured: boolean }>({
+    queryKey: ["ai-status"],
+    queryFn: () =>
+      fetch("/api/ai/status").then((r) => r.json() as Promise<{ configured: boolean }>),
+    staleTime: Infinity,
+  });
+  const aiAvailable = aiStatus?.configured === true;
 
   useEffect(() => {
     if (!open) return;
@@ -400,15 +411,23 @@ export function ProductFormModal({
                 Generate with AI
               </p>
               <p className="mt-0.5 font-sans text-[11px] leading-relaxed text-muted-foreground">
-                Upload a main image (or type a title), then draft title, summary,
-                and category. Review before saving.
+                {aiAvailable
+                  ? "Upload a main image (or type a title), then draft title, summary, and category. Review before saving."
+                  : "AI is not configured on this server. Add OPENAI_API_KEY to the server environment to enable this feature."}
               </p>
             </div>
             <button
               type="button"
               onClick={() => void handleGenerateWithAi()}
-              disabled={isSubmitting || aiGenerating}
-              className="shrink-0 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:opacity-60"
+              disabled={isSubmitting || aiGenerating || !aiAvailable}
+              title={
+                !aiAvailable
+                  ? "AI is not configured — add OPENAI_API_KEY to .env.local"
+                  : aiGenerating
+                    ? "Generating…"
+                    : "Generate title, summary and category with AI"
+              }
+              className="shrink-0 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {aiGenerating ? "Generating…" : "Generate with AI"}
             </button>

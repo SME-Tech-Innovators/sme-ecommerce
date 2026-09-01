@@ -172,12 +172,20 @@ export function SigninForm() {
         </div>
 
         <div>
-          <label
-            htmlFor="signin-password"
-            className="mb-2 block font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-          >
-            Password
-          </label>
+          <div className="mb-2 flex items-center justify-between">
+            <label
+              htmlFor="signin-password"
+              className="block font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+            >
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="font-sans text-[11px] font-medium text-primary-blue/70 underline decoration-primary-blue/25 underline-offset-4 hover:text-primary-blue hover:decoration-primary-blue"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             id="signin-password"
             name="password"
