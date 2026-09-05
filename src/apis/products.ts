@@ -13,6 +13,88 @@ import type {
   UpdateProductBody,
 } from "@/types/product";
 
+const DEMO_ACCESS_TOKEN = "demo-local-token";
+const DEMO_PRODUCTS: ProductApi[] = [
+  {
+    id: "demo-product-1",
+    workspaceId: "demo-workspace-456",
+    title: "Classic Tee",
+    slug: "classic-tee",
+    sku: "CT-001",
+    priceAmount: 3699,
+    compareAtPriceAmount: 4499,
+    currency: "ZAR",
+    priceLabel: "R 36.99",
+    compareAtPriceLabel: "R 44.99",
+    onSale: true,
+    quantityAvailable: 12,
+    inStock: true,
+    category: { id: "demo-cat-apparel", name: "Apparel", slug: "apparel" },
+    status: "ACTIVE",
+    mainImageId: null,
+    imageUrl: null,
+    summary: "Everyday cotton tee for the local demo storefront.",
+    galleryMediaIds: null,
+    galleryUrls: null,
+    configurationLabel: null,
+    warrantyNote: null,
+    shippingNote: null,
+    metadata: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "demo-product-2",
+    workspaceId: "demo-workspace-456",
+    title: "Travel Mug",
+    slug: "travel-mug",
+    sku: "TM-002",
+    priceAmount: 2499,
+    compareAtPriceAmount: null,
+    currency: "ZAR",
+    priceLabel: "R 24.99",
+    compareAtPriceLabel: null,
+    onSale: false,
+    quantityAvailable: 8,
+    inStock: true,
+    category: { id: "demo-cat-home", name: "Home", slug: "home" },
+    status: "ACTIVE",
+    mainImageId: null,
+    imageUrl: null,
+    summary: "Insulated mug designed for commuters and daily essentials.",
+    galleryMediaIds: null,
+    galleryUrls: null,
+    configurationLabel: null,
+    warrantyNote: null,
+    shippingNote: null,
+    metadata: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const DEMO_CATEGORIES: ProductCategory[] = [
+  { id: "demo-cat-hair", name: "Hair", slug: "hair" },
+  { id: "demo-cat-food", name: "Food", slug: "food" },
+  { id: "demo-cat-clothing", name: "Clothing", slug: "clothing" },
+  { id: "demo-cat-toys", name: "Toy", slug: "toy" },
+  { id: "demo-cat-beauty", name: "Beauty", slug: "beauty" },
+  { id: "demo-cat-home", name: "Home", slug: "home" },
+  { id: "demo-cat-electronics", name: "Electronics", slug: "electronics" },
+  { id: "demo-cat-health", name: "Health", slug: "health" },
+  { id: "demo-cat-furniture", name: "Furniture", slug: "furniture" },
+  { id: "demo-cat-books", name: "Books", slug: "books" },
+  { id: "demo-cat-sports", name: "Sports", slug: "sports" },
+  { id: "demo-cat-pets", name: "Pets", slug: "pets" },
+  { id: "demo-cat-jewelry", name: "Jewelry", slug: "jewelry" },
+  { id: "demo-cat-kids", name: "Kids", slug: "kids" },
+  { id: "demo-cat-accessories", name: "Accessories", slug: "accessories" },
+];
+
+function isDemoAccessToken(accessToken: string): boolean {
+  return accessToken === DEMO_ACCESS_TOKEN;
+}
+
 function asPage(raw: ProductPage): ProductPage {
   return {
     items: Array.isArray(raw.items) ? raw.items.map(asProductApi) : [],
@@ -37,6 +119,44 @@ export async function listProducts(
   accessToken: string,
   params: ListProductsParams = {},
 ): Promise<ProductsPageResult> {
+  if (isDemoAccessToken(accessToken)) {
+    const items = DEMO_PRODUCTS.filter((product) => {
+      if (params.status && product.status.toString().toUpperCase() !== params.status.toUpperCase()) {
+        return false;
+      }
+      if (params.categoryId && product.category?.id !== params.categoryId) {
+        return false;
+      }
+      if (params.search?.trim()) {
+        const search = params.search.trim().toLowerCase();
+        if (
+          !product.title.toLowerCase().includes(search) &&
+          !(product.summary ?? "").toLowerCase().includes(search)
+        ) {
+          return false;
+        }
+      }
+      if (params.onSale !== undefined && product.onSale !== params.onSale) {
+        return false;
+      }
+      if (params.inStock !== undefined && product.inStock !== params.inStock) {
+        return false;
+      }
+      return true;
+    });
+
+    return {
+      ok: true,
+      data: {
+        items,
+        page: Number(params.page ?? 0),
+        limit: Number(params.limit ?? 50),
+        totalItems: items.length,
+        totalPages: Math.max(1, Math.ceil(items.length / (params.limit ?? 50)) || 1),
+      },
+    };
+  }
+
   const qs = new URLSearchParams();
   if (params.status) qs.set("status", params.status.toUpperCase());
   if (params.categoryId) qs.set("categoryId", params.categoryId);
@@ -213,6 +333,13 @@ export async function listCategories(
   workspaceId: string,
   accessToken: string,
 ): Promise<CategoriesResult> {
+  if (isDemoAccessToken(accessToken)) {
+    return {
+      ok: true,
+      data: DEMO_CATEGORIES,
+    };
+  }
+
   const url = `${getSmeApiBaseUrl()}/workspaces/${encodeURIComponent(workspaceId)}/categories`;
   let res: Response;
   try {
