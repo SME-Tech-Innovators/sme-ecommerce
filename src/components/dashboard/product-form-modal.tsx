@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, PenLine, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   AiProductDraftError,
@@ -49,6 +50,8 @@ type ProductFormModalProps = {
   /** Prefill when editing. */
   product?: ProductApi | null;
 };
+
+type CreateStep = "choose" | "ai-photo" | "details";
 
 type FormState = {
   title: string;
@@ -178,6 +181,9 @@ export function ProductFormModal({
   const [gallery, setGallery] = useState<SelectedMedia[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [step, setStep] = useState<CreateStep>("choose");
+  const [usedAiPath, setUsedAiPath] = useState(false);
+  const generatingForUrl = useRef<string | null>(null);
 
   // Check whether the OpenAI key is configured server-side.
   // The status endpoint never exposes the key itself.
@@ -193,7 +199,10 @@ export function ProductFormModal({
     if (!open) return;
     setError(null);
     setAiGenerating(false);
+    setUsedAiPath(false);
+    generatingForUrl.current = null;
     if (mode === "edit" && product) {
+      setStep("details");
       setForm({
         title: product.title ?? "",
         sku: product.sku ?? "",
@@ -213,6 +222,7 @@ export function ProductFormModal({
       setGallery(initialGallery(product));
       return;
     }
+    setStep("choose");
     setForm({
       ...emptyForm(),
       sku: `SKU-${Date.now().toString().slice(-8)}`,
@@ -226,16 +236,41 @@ export function ProductFormModal({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleGenerateWithAi() {
-    const imageUrl = mainImage?.url?.trim() || undefined;
+  function resetCreateDraft() {
+    setError(null);
+    setAiGenerating(false);
+    setUsedAiPath(false);
+    generatingForUrl.current = null;
+    setForm({
+      ...emptyForm(),
+      sku: `SKU-${Date.now().toString().slice(-8)}`,
+      categoryName: categories[0]?.name ?? "",
+    });
+    setMainImage(null);
+    setGallery([]);
+  }
+
+  function goToChoose() {
+    resetCreateDraft();
+    setStep("choose");
+  }
+
+  async function handleGenerateWithAi(
+    image: SelectedMedia | null = mainImage,
+    options?: { advanceToDetails?: boolean },
+  ) {
+    const imageUrl = image?.url?.trim() || undefined;
     const titleHint = form.title.trim() || undefined;
     if (!imageUrl && !titleHint && !form.summary.trim()) {
-      setError("Add a main image or a title first, then generate with AI.");
-      return;
+      setError("Add a product photo first, then generate with AI.");
+      return false;
     }
+
+    if (imageUrl && generatingForUrl.current === imageUrl) return false;
 
     setError(null);
     setAiGenerating(true);
+    if (imageUrl) generatingForUrl.current = imageUrl;
     try {
       const priceAmount = parsePriceToMinorUnits(form.price) ?? undefined;
       const draft = await requestAiProductDraft({
@@ -266,6 +301,11 @@ export function ProductFormModal({
         };
       });
       toast.success("AI draft applied — review before saving.");
+      if (options?.advanceToDetails) {
+        setUsedAiPath(true);
+        setStep("details");
+      }
+      return true;
     } catch (err) {
       const message =
         err instanceof AiProductDraftError
@@ -275,8 +315,17 @@ export function ProductFormModal({
             : "Could not generate product copy.";
       setError(message);
       toast.error(message);
+      return false;
     } finally {
+      generatingForUrl.current = null;
       setAiGenerating(false);
+    }
+  }
+
+  function handleMainImageChange(next: SelectedMedia | null) {
+    setMainImage(next);
+    if (step === "ai-photo" && next?.url) {
+      void handleGenerateWithAi(next, { advanceToDetails: true });
     }
   }
 
@@ -366,6 +415,24 @@ export function ProductFormModal({
   }
 
   const isEdit = mode === "edit";
+  const heading =
+    isEdit
+      ? "Edit product"
+      : step === "ai-photo"
+        ? "Add with AI"
+        : step === "details" && usedAiPath
+          ? "Review AI draft"
+          : "Add product";
+  const description =
+    isEdit
+      ? "Update the product details for your workspace catalogue."
+      : step === "choose"
+        ? "Choose how you want to add this product."
+        : step === "ai-photo"
+          ? "Upload a product photo. We’ll draft the title, summary, and category for you to review."
+          : usedAiPath
+            ? "Check the AI copy, add price and stock, then save."
+            : "Fill in the details. Upload images to your workspace media library.";
 
   return (
     <Modal
@@ -374,8 +441,21 @@ export function ProductFormModal({
       labelledBy={titleId}
       describedBy={descriptionId}
       closeOnBackdropClick={!isSubmitting && !aiGenerating}
-      panelClassName="max-h-[min(90vh,780px)] max-w-lg overflow-y-auto"
+      panelClassName={`max-h-[min(90vh,780px)] overflow-y-auto ${
+        step === "choose" || step === "ai-photo" ? "max-w-xl" : "max-w-lg"
+      }`}
     >
+      {step !== "choose" && !isEdit ? (
+        <button
+          type="button"
+          onClick={goToChoose}
+          disabled={isSubmitting || aiGenerating}
+          className="mb-4 inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-primary-blue/70 transition-colors hover:text-primary-blue disabled:opacity-50"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden />
+          Back to options
+        </button>
+      ) : null}
       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-blue/55">
         Catalogue
       </p>
@@ -383,17 +463,127 @@ export function ProductFormModal({
         id={titleId}
         className="mt-3 font-serif text-2xl font-light tracking-tight text-primary-blue sm:text-3xl"
       >
-        {isEdit ? "Edit product" : "Add product"}
+        {heading}
       </h2>
       <p
         id={descriptionId}
         className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground"
       >
-        {isEdit
-          ? "Update the product details for your workspace catalogue."
-          : "Fill in the basics. Upload images to your workspace media library."}
+        {description}
       </p>
 
+      {step === "choose" && !isEdit ? (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={!aiAvailable}
+            onClick={() => {
+              setError(null);
+              setUsedAiPath(true);
+              setStep("ai-photo");
+            }}
+            title={
+              aiAvailable
+                ? "Draft this product from a photo"
+                : "AI is not configured — add OPENAI_API_KEY to .env.local"
+            }
+            className="flex flex-col items-start rounded-lg border border-primary-blue/15 bg-blue-gray/30 px-4 py-5 text-left transition-colors hover:border-primary-blue/35 hover:bg-blue-gray/50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Sparkles className="size-5 text-primary-blue" aria-hidden />
+            <span className="mt-3 font-sans text-sm font-semibold text-primary-blue">
+              Add with AI
+            </span>
+            <span className="mt-1.5 font-sans text-[12px] leading-relaxed text-muted-foreground">
+              {aiAvailable
+                ? "Upload a photo and we’ll fill in the listing for you."
+                : "AI is not configured on this server yet."}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setUsedAiPath(false);
+              setStep("details");
+            }}
+            className="flex flex-col items-start rounded-lg border border-primary-blue/15 bg-white px-4 py-5 text-left transition-colors hover:border-primary-blue/35 hover:bg-blue-gray/20"
+          >
+            <PenLine className="size-5 text-primary-blue" aria-hidden />
+            <span className="mt-3 font-sans text-sm font-semibold text-primary-blue">
+              Add manually
+            </span>
+            <span className="mt-1.5 font-sans text-[12px] leading-relaxed text-muted-foreground">
+              Enter the title, price, stock, and photos yourself.
+            </span>
+          </button>
+          <div className="sm:col-span-2 flex justify-end pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-sans text-sm font-medium text-primary-blue underline decoration-primary-blue/30 underline-offset-4 hover:decoration-primary-blue"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {step === "ai-photo" && !isEdit ? (
+        <div className="mt-6 space-y-4">
+          <div className="relative">
+            <ProductMediaFields
+              workspaceId={workspaceId}
+              mainImage={mainImage}
+              gallery={gallery}
+              onMainImageChange={handleMainImageChange}
+              onGalleryChange={setGallery}
+              disabled={isSubmitting || aiGenerating}
+              variant="hero"
+              showGallery={false}
+            />
+            {aiGenerating ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80">
+                <p className="font-sans text-sm font-semibold text-primary-blue">
+                  Drafting product details…
+                </p>
+              </div>
+            ) : null}
+          </div>
+          {error ? (
+            <div className="space-y-2">
+              <p className="font-sans text-xs text-red-700" role="alert">
+                {error}
+              </p>
+              {mainImage?.url ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void handleGenerateWithAi(mainImage, {
+                      advanceToDetails: true,
+                    })
+                  }
+                  disabled={aiGenerating}
+                  className="font-sans text-xs font-semibold text-primary-blue underline decoration-primary-blue/30 underline-offset-4 hover:decoration-primary-blue disabled:opacity-50"
+                >
+                  Try again
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting || aiGenerating}
+              className="font-sans text-sm font-medium text-primary-blue underline decoration-primary-blue/30 underline-offset-4 hover:decoration-primary-blue disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {step === "details" ? (
       <form className="mt-6 space-y-4" onSubmit={(e) => void handleSubmit(e)}>
         <ProductMediaFields
           workspaceId={workspaceId}
@@ -404,35 +594,23 @@ export function ProductFormModal({
           disabled={isSubmitting || aiGenerating}
         />
 
-        <div className="rounded-md border border-primary-blue/15 bg-blue-gray/40 px-3 py-3">
+        {(usedAiPath || isEdit) && aiAvailable ? (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="font-sans text-sm font-medium text-primary-blue">
-                Generate with AI
-              </p>
-              <p className="mt-0.5 font-sans text-[11px] leading-relaxed text-muted-foreground">
-                {aiAvailable
-                  ? "Upload a main image (or type a title), then draft title, summary, and category. Review before saving."
-                  : "AI is not configured on this server. Add OPENAI_API_KEY to the server environment to enable this feature."}
-              </p>
-            </div>
+            <p className="font-sans text-[11px] text-muted-foreground">
+              {usedAiPath
+                ? "AI filled these fields from your photo. Edit anything before saving."
+                : "Need a rewrite? Generate copy from the current photo or title."}
+            </p>
             <button
               type="button"
               onClick={() => void handleGenerateWithAi()}
-              disabled={isSubmitting || aiGenerating || !aiAvailable}
-              title={
-                !aiAvailable
-                  ? "AI is not configured — add OPENAI_API_KEY to .env.local"
-                  : aiGenerating
-                    ? "Generating…"
-                    : "Generate title, summary and category with AI"
-              }
-              className="shrink-0 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={isSubmitting || aiGenerating}
+              className="shrink-0 font-sans text-xs font-semibold text-primary-blue underline decoration-primary-blue/30 underline-offset-4 hover:decoration-primary-blue disabled:opacity-50"
             >
-              {aiGenerating ? "Generating…" : "Generate with AI"}
+              {aiGenerating ? "Generating…" : "Regenerate with AI"}
             </button>
           </div>
-        </div>
+        ) : null}
 
         <div>
           <label htmlFor="product-form-title" className={labelClass}>
@@ -447,7 +625,7 @@ export function ProductFormModal({
             disabled={isSubmitting || aiGenerating}
             placeholder="Titanium task light"
             className={fieldClass}
-            autoFocus
+            autoFocus={!usedAiPath}
           />
         </div>
 
@@ -480,6 +658,7 @@ export function ProductFormModal({
               disabled={isSubmitting}
               placeholder="249.00"
               className={fieldClass}
+              autoFocus={usedAiPath}
             />
           </div>
         </div>
@@ -643,6 +822,7 @@ export function ProductFormModal({
           </button>
         </div>
       </form>
+      ) : null}
     </Modal>
   );
 }

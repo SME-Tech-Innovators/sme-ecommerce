@@ -1,6 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import {
+  applyProgressBarAccent,
+  releaseProgressBarAccent,
+} from "@/lib/progress-bar-accent";
 import {
   resolveStorefrontTheme,
   storefrontThemeCssVars,
@@ -18,6 +22,14 @@ export function StorefrontThemeRoot({
   children,
 }: StorefrontThemeRootProps) {
   const theme = resolveStorefrontTheme(config);
+  const progressOwner = useRef(Symbol("storefront-progress-bar"));
+
+  useEffect(() => {
+    const owner = progressOwner.current;
+    applyProgressBarAccent(owner, theme.accent);
+    return () => releaseProgressBarAccent(owner);
+  }, [theme.accent]);
+
   return (
     <div
       data-storefront-template={config.templateId || "classic-boutique"}

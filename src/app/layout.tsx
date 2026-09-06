@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ConditionalSiteFooter } from "@/components/landing/conditional-site-footer";
 import { AppToaster } from "@/providers/app-toaster";
+import { NextProgressBarProvider } from "@/providers/next-progress-bar-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import "./globals.css";
 
@@ -33,11 +34,13 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <NuqsAdapter>
           <QueryProvider>
-            <AppToaster />
-            <div className="flex min-h-full flex-1 flex-col">
-              <div className="flex-1">{children}</div>
-              <ConditionalSiteFooter />
-            </div>
+            <NextProgressBarProvider>
+              <AppToaster />
+              <div className="flex min-h-full flex-1 flex-col">
+                <div className="flex-1">{children}</div>
+                <ConditionalSiteFooter />
+              </div>
+            </NextProgressBarProvider>
           </QueryProvider>
         </NuqsAdapter>
       </body>
