@@ -393,6 +393,7 @@ export function ProductFormModal({
           disabled={isSubmitting || aiGenerating}
         />
 
+        {/* Hidden for the current demo — restore this block to show AI draft again.
         <div className="rounded-md border border-primary-blue/15 bg-blue-gray/40 px-3 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
@@ -414,6 +415,7 @@ export function ProductFormModal({
             </button>
           </div>
         </div>
+        */}
 
         <div>
           <label htmlFor="product-form-title" className={labelClass}>
