@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   AiProductDraftError,
@@ -201,6 +202,7 @@ export function ProductFormModal({
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [customCategorySelected, setCustomCategorySelected] = useState(false);
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [storedCategories, setStoredCategories] = useState<ProductCategory[]>(
     [],
   );
@@ -230,6 +232,7 @@ export function ProductFormModal({
     setError(null);
     setAiGenerating(false);
     setCustomCategorySelected(false);
+    setCategoryMenuOpen(false);
     if (mode === "edit" && product) {
       setForm({
         title: product.title ?? "",
@@ -609,48 +612,99 @@ export function ProductFormModal({
             <label htmlFor="product-form-category" className={labelClass}>
               Category
             </label>
-            <select
-              id="product-form-category"
-              value={customCategorySelected ? OTHER_CATEGORY_VALUE : form.categoryName}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === OTHER_CATEGORY_VALUE) {
-                  setCustomCategorySelected(true);
-                  update("categoryName", "");
-                  return;
-                }
-                setCustomCategorySelected(false);
-                update("categoryName", value);
-              }}
-              disabled={isSubmitting}
-              className={fieldClass}
-            >
-              <option value="">No category</option>
-              <option value={OTHER_CATEGORY_VALUE}>Other</option>
-              {form.categoryName &&
-              !selectableCategories.some(
-                (category) => category.name === form.categoryName,
-              ) ? (
-                <option value={form.categoryName}>{form.categoryName}</option>
-              ) : null}
-              {selectableCategories.map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {customCategorySelected ? (
-              <input
-                id="product-form-custom-category"
-                type="text"
-                value={form.categoryName}
-                onChange={(e) => update("categoryName", e.target.value)}
+            <div className="relative">
+              <button
+                type="button"
+                id="product-form-category"
+                aria-haspopup="listbox"
+                aria-expanded={categoryMenuOpen}
+                onClick={() => setCategoryMenuOpen((open) => !open)}
                 disabled={isSubmitting}
-                placeholder="Enter your category"
-                className={`${fieldClass} mt-2`}
-                autoFocus
-                required
+                className={`${fieldClass} relative flex items-center justify-between bg-blue-gray/20 pr-10 text-left transition-colors hover:border-primary-blue/25 hover:bg-blue-gray/30 disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                <span className="truncate">
+                  {customCategorySelected
+                    ? form.categoryName || "Other"
+                    : form.categoryName || "No category"}
+                </span>
+              </button>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-blue/55"
+                strokeWidth={1.8}
               />
+              {categoryMenuOpen ? (
+                <div
+                  role="listbox"
+                  aria-label="Product category"
+                  className="absolute z-20 mt-1 max-h-40 w-full overflow-y-auto rounded-md border border-primary-blue/15 bg-white p-1 shadow-lg"
+                >
+                  {[
+                    { id: "none", name: "No category", value: "" },
+                    { id: "other", name: "Other", value: OTHER_CATEGORY_VALUE },
+                    ...(form.categoryName &&
+                    !selectableCategories.some(
+                      (category) => category.name === form.categoryName,
+                    )
+                      ? [
+                          {
+                            id: "current",
+                            name: form.categoryName,
+                            value: form.categoryName,
+                          },
+                        ]
+                      : []),
+                    ...selectableCategories.map((category) => ({
+                      id: category.id,
+                      name: category.name,
+                      value: category.name,
+                    })),
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        !customCategorySelected && form.categoryName === option.value
+                      }
+                      onClick={() => {
+                        if (option.value === OTHER_CATEGORY_VALUE) {
+                          setCustomCategorySelected(true);
+                          update("categoryName", "");
+                        } else {
+                          setCustomCategorySelected(false);
+                          update("categoryName", option.value);
+                        }
+                        setCategoryMenuOpen(false);
+                      }}
+                      className="block w-full rounded px-3 py-2 text-left font-sans text-sm text-primary-blue transition-colors hover:bg-blue-gray/30 aria-selected:bg-blue-gray/40"
+                    >
+                      {option.name}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {customCategorySelected ? (
+              <div className="mt-2 rounded-md border border-primary-blue/10 bg-blue-gray/15 p-2">
+                <label
+                  htmlFor="product-form-custom-category"
+                  className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-blue/55"
+                >
+                  Your category name
+                </label>
+                <input
+                  id="product-form-custom-category"
+                  type="text"
+                  value={form.categoryName}
+                  onChange={(e) => update("categoryName", e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="e.g. Handmade gifts"
+                  className={`${fieldClass} bg-white`}
+                  autoFocus
+                  required
+                />
+              </div>
             ) : null}
           </div>
           <div>
