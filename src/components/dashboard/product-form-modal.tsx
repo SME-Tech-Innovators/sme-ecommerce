@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   AiProductDraftError,
@@ -609,48 +610,63 @@ export function ProductFormModal({
             <label htmlFor="product-form-category" className={labelClass}>
               Category
             </label>
-            <select
-              id="product-form-category"
-              value={customCategorySelected ? OTHER_CATEGORY_VALUE : form.categoryName}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === OTHER_CATEGORY_VALUE) {
-                  setCustomCategorySelected(true);
-                  update("categoryName", "");
-                  return;
-                }
-                setCustomCategorySelected(false);
-                update("categoryName", value);
-              }}
-              disabled={isSubmitting}
-              className={fieldClass}
-            >
-              <option value="">No category</option>
-              <option value={OTHER_CATEGORY_VALUE}>Other</option>
-              {form.categoryName &&
-              !selectableCategories.some(
-                (category) => category.name === form.categoryName,
-              ) ? (
-                <option value={form.categoryName}>{form.categoryName}</option>
-              ) : null}
-              {selectableCategories.map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {customCategorySelected ? (
-              <input
-                id="product-form-custom-category"
-                type="text"
-                value={form.categoryName}
-                onChange={(e) => update("categoryName", e.target.value)}
+            <div className="relative">
+              <select
+                id="product-form-category"
+                value={customCategorySelected ? OTHER_CATEGORY_VALUE : form.categoryName}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === OTHER_CATEGORY_VALUE) {
+                    setCustomCategorySelected(true);
+                    update("categoryName", "");
+                    return;
+                  }
+                  setCustomCategorySelected(false);
+                  update("categoryName", value);
+                }}
                 disabled={isSubmitting}
-                placeholder="Enter your category"
-                className={`${fieldClass} mt-2`}
-                autoFocus
-                required
+                className={`${fieldClass} appearance-none bg-blue-gray/20 pr-10 transition-colors hover:border-primary-blue/25 hover:bg-blue-gray/30 disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                <option value="">No category</option>
+                <option value={OTHER_CATEGORY_VALUE}>Other</option>
+                {form.categoryName &&
+                !selectableCategories.some(
+                  (category) => category.name === form.categoryName,
+                ) ? (
+                  <option value={form.categoryName}>{form.categoryName}</option>
+                ) : null}
+                {selectableCategories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-blue/55"
+                strokeWidth={1.8}
               />
+            </div>
+            {customCategorySelected ? (
+              <div className="mt-2 rounded-md border border-primary-blue/10 bg-blue-gray/15 p-2">
+                <label
+                  htmlFor="product-form-custom-category"
+                  className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-blue/55"
+                >
+                  Your category name
+                </label>
+                <input
+                  id="product-form-custom-category"
+                  type="text"
+                  value={form.categoryName}
+                  onChange={(e) => update("categoryName", e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="e.g. Handmade gifts"
+                  className={`${fieldClass} bg-white`}
+                  autoFocus
+                  required
+                />
+              </div>
             ) : null}
           </div>
           <div>
