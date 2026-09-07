@@ -49,6 +49,24 @@ type ProductFormModalProps = {
   product?: ProductApi | null;
 };
 
+const STANDARD_CATEGORY_NAMES = [
+  "Hair",
+  "Food",
+  "Clothing",
+  "Toy",
+  "Beauty",
+  "Home",
+  "Electronics",
+  "Health",
+  "Furniture",
+  "Books",
+  "Sports",
+  "Pets",
+  "Jewelry",
+  "Kids",
+  "Accessories",
+];
+
 type FormState = {
   title: string;
   sku: string;
@@ -177,6 +195,15 @@ export function ProductFormModal({
   const [gallery, setGallery] = useState<SelectedMedia[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const selectableCategories = [
+    ...categories,
+    ...STANDARD_CATEGORY_NAMES.filter(
+      (name) =>
+        !categories.some(
+          (category) => category.name.toLowerCase() === name.toLowerCase(),
+        ),
+    ).map((name) => ({ id: `standard-${name.toLowerCase()}`, name, slug: name.toLowerCase() })),
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -234,7 +261,7 @@ export function ProductFormModal({
         priceAmount,
         currency: "ZAR",
         categoryHint: form.categoryName.trim() || undefined,
-        categoryNames: categories.map((c) => c.name),
+        categoryNames: selectableCategories.map((c) => c.name),
         businessName: getStoredWorkspace()?.businessName || undefined,
         tone: "adaptive",
       });
@@ -551,10 +578,12 @@ export function ProductFormModal({
             >
               <option value="">No category</option>
               {form.categoryName &&
-              !categories.some((category) => category.name === form.categoryName) ? (
+              !selectableCategories.some(
+                (category) => category.name === form.categoryName,
+              ) ? (
                 <option value={form.categoryName}>{form.categoryName}</option>
               ) : null}
-              {categories.map((c) => (
+              {selectableCategories.map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}
                 </option>
