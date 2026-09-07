@@ -11,6 +11,10 @@ import {
   type SelectedMedia,
 } from "@/components/dashboard/product-media-fields";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  loadStoredProductCategories,
+  storeProductCategory,
+} from "@/lib/product-category-storage";
 import { getStoredWorkspace } from "@/lib/workspace-id";
 import { Modal } from "@modals";
 import type {
@@ -66,6 +70,7 @@ const STANDARD_CATEGORY_NAMES = [
   "Kids",
   "Accessories",
 ];
+const OTHER_CATEGORY_VALUE = "__other__";
 
 type FormState = {
   title: string;
@@ -195,20 +200,36 @@ export function ProductFormModal({
   const [gallery, setGallery] = useState<SelectedMedia[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [customCategorySelected, setCustomCategorySelected] = useState(false);
+  const [storedCategories, setStoredCategories] = useState<ProductCategory[]>(
+    [],
+  );
+
+  useEffect(() => {
+    setStoredCategories(loadStoredProductCategories(workspaceId));
+  }, [workspaceId]);
+
   const selectableCategories = [
     ...categories,
-    ...STANDARD_CATEGORY_NAMES.filter(
-      (name) =>
-        !categories.some(
-          (category) => category.name.toLowerCase() === name.toLowerCase(),
-        ),
-    ).map((name) => ({ id: `standard-${name.toLowerCase()}`, name, slug: name.toLowerCase() })),
-  ];
+    ...storedCategories,
+    ...STANDARD_CATEGORY_NAMES.map((name) => ({
+      id: `standard-${name.toLowerCase()}`,
+      name,
+      slug: name.toLowerCase(),
+    })),
+  ].filter(
+    (category, index, all) =>
+      all.findIndex(
+        (candidate) =>
+          candidate.name.toLowerCase() === category.name.toLowerCase(),
+      ) === index,
+  );
 
   useEffect(() => {
     if (!open) return;
     setError(null);
     setAiGenerating(false);
+    setCustomCategorySelected(false);
     if (mode === "edit" && product) {
       setForm({
         title: product.title ?? "",
@@ -328,6 +349,11 @@ export function ProductFormModal({
     }
     const quantityAvailable = quantityParsed;
 
+    if (customCategorySelected && !form.categoryName.trim()) {
+      setError("Enter your custom category name.");
+      return;
+    }
+
     const compareRaw = form.compareAtPrice.trim();
     let compareAtPriceAmount: number | null | undefined;
     let clearCompareAtPrice: boolean | undefined;
@@ -367,6 +393,20 @@ export function ProductFormModal({
         .filter((id) => Boolean(id.trim())),
       summary: form.summary.trim() || undefined,
     };
+
+    if (values.categoryName) {
+      const storedCategory = storeProductCategory(
+        workspaceId,
+        values.categoryName,
+      );
+      if (storedCategory) {
+        setStoredCategories((previous) =>
+          previous.some((category) => category.name === storedCategory.name)
+            ? previous
+            : [...previous, storedCategory],
+        );
+      }
+    }
 
     try {
       await onSubmit(values);
@@ -571,12 +611,22 @@ export function ProductFormModal({
             </label>
             <select
               id="product-form-category"
-              value={form.categoryName}
-              onChange={(e) => update("categoryName", e.target.value)}
+              value={customCategorySelected ? OTHER_CATEGORY_VALUE : form.categoryName}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === OTHER_CATEGORY_VALUE) {
+                  setCustomCategorySelected(true);
+                  update("categoryName", "");
+                  return;
+                }
+                setCustomCategorySelected(false);
+                update("categoryName", value);
+              }}
               disabled={isSubmitting}
               className={fieldClass}
             >
               <option value="">No category</option>
+              <option value={OTHER_CATEGORY_VALUE}>Other</option>
               {form.categoryName &&
               !selectableCategories.some(
                 (category) => category.name === form.categoryName,
@@ -589,6 +639,19 @@ export function ProductFormModal({
                 </option>
               ))}
             </select>
+            {customCategorySelected ? (
+              <input
+                id="product-form-custom-category"
+                type="text"
+                value={form.categoryName}
+                onChange={(e) => update("categoryName", e.target.value)}
+                disabled={isSubmitting}
+                placeholder="Enter your category"
+                className={`${fieldClass} mt-2`}
+                autoFocus
+                required
+              />
+            ) : null}
           </div>
           <div>
             <label htmlFor="product-form-status" className={labelClass}>
