@@ -542,21 +542,24 @@ export function ProductFormModal({
             <label htmlFor="product-form-category" className={labelClass}>
               Category
             </label>
-            <input
+            <select
               id="product-form-category"
-              type="text"
-              list="product-form-category-list"
               value={form.categoryName}
               onChange={(e) => update("categoryName", e.target.value)}
               disabled={isSubmitting}
-              placeholder="Lighting"
               className={fieldClass}
-            />
-            <datalist id="product-form-category-list">
+            >
+              <option value="">No category</option>
+              {form.categoryName &&
+              !categories.some((category) => category.name === form.categoryName) ? (
+                <option value={form.categoryName}>{form.categoryName}</option>
+              ) : null}
               {categories.map((c) => (
-                <option key={c.id} value={c.name} />
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
               ))}
-            </datalist>
+            </select>
           </div>
           <div>
             <label htmlFor="product-form-status" className={labelClass}>
