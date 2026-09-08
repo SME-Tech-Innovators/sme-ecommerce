@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -12,6 +13,10 @@ import {
   type SelectedMedia,
 } from "@/components/dashboard/product-media-fields";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  loadStoredProductCategories,
+  storeProductCategory,
+} from "@/lib/product-category-storage";
 import { getStoredWorkspace } from "@/lib/workspace-id";
 import { Modal } from "@modals";
 import type {
@@ -50,6 +55,25 @@ type ProductFormModalProps = {
   product?: ProductApi | null;
 };
 
+const STANDARD_CATEGORY_NAMES = [
+  "Hair",
+  "Food",
+  "Clothing",
+  "Toy",
+  "Beauty",
+  "Home",
+  "Electronics",
+  "Health",
+  "Furniture",
+  "Books",
+  "Sports",
+  "Pets",
+  "Jewelry",
+  "Kids",
+  "Accessories",
+];
+const OTHER_CATEGORY_VALUE = "__other__";
+
 type FormState = {
   title: string;
   sku: string;
@@ -74,16 +98,16 @@ function emptyForm(): FormState {
   };
 }
 
-function formatMinorUnits(amount: number): string {
-  return (amount / 100).toFixed(2);
+function formatPriceForInput(amount: number): string {
+  return Number(amount).toFixed(2);
 }
 
-function parsePriceToMinorUnits(input: string): number | null {
+function parsePrice(input: string): number | null {
   const cleaned = input.trim().replace(/R\s*/i, "").replace(/,/g, "");
   if (!cleaned) return null;
   const value = Number(cleaned);
   if (!Number.isFinite(value) || value < 0) return null;
-  return Math.round(value * 100);
+  return Math.round(value * 100) / 100; // preserve 2 d.p.
 }
 
 function normalizeStatus(raw: unknown): "DRAFT" | "ACTIVE" | "ARCHIVED" {
@@ -178,6 +202,31 @@ export function ProductFormModal({
   const [gallery, setGallery] = useState<SelectedMedia[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [customCategorySelected, setCustomCategorySelected] = useState(false);
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [storedCategories, setStoredCategories] = useState<ProductCategory[]>(
+    [],
+  );
+
+  useEffect(() => {
+    setStoredCategories(loadStoredProductCategories(workspaceId));
+  }, [workspaceId]);
+
+  const selectableCategories = [
+    ...categories,
+    ...storedCategories,
+    ...STANDARD_CATEGORY_NAMES.map((name) => ({
+      id: `standard-${name.toLowerCase()}`,
+      name,
+      slug: name.toLowerCase(),
+    })),
+  ].filter(
+    (category, index, all) =>
+      all.findIndex(
+        (candidate) =>
+          candidate.name.toLowerCase() === category.name.toLowerCase(),
+      ) === index,
+  );
 
   // Check whether the OpenAI key is configured server-side.
   // The status endpoint never exposes the key itself.
@@ -193,14 +242,16 @@ export function ProductFormModal({
     if (!open) return;
     setError(null);
     setAiGenerating(false);
+    setCustomCategorySelected(false);
+    setCategoryMenuOpen(false);
     if (mode === "edit" && product) {
       setForm({
         title: product.title ?? "",
         sku: product.sku ?? "",
-        price: formatMinorUnits(Number(product.priceAmount ?? 0)),
+        price: formatPriceForInput(Number(product.priceAmount ?? 0)),
         compareAtPrice:
           product.compareAtPriceAmount != null
-            ? formatMinorUnits(Number(product.compareAtPriceAmount))
+            ? formatPriceForInput(Number(product.compareAtPriceAmount))
             : "",
         quantityAvailable: String(
           Math.max(0, Math.floor(Number(product.quantityAvailable ?? 0))),
@@ -237,7 +288,7 @@ export function ProductFormModal({
     setError(null);
     setAiGenerating(true);
     try {
-      const priceAmount = parsePriceToMinorUnits(form.price) ?? undefined;
+      const priceAmount = parsePrice(form.price) ?? undefined;
       const draft = await requestAiProductDraft({
         titleHint,
         notes: form.summary.trim() || undefined,
@@ -245,7 +296,7 @@ export function ProductFormModal({
         priceAmount,
         currency: "ZAR",
         categoryHint: form.categoryName.trim() || undefined,
-        categoryNames: categories.map((c) => c.name),
+        categoryNames: selectableCategories.map((c) => c.name),
         businessName: getStoredWorkspace()?.businessName || undefined,
         tone: "adaptive",
       });
@@ -295,7 +346,7 @@ export function ProductFormModal({
       return;
     }
 
-    const priceAmount = parsePriceToMinorUnits(form.price);
+    const priceAmount = parsePrice(form.price);
     if (priceAmount == null) {
       setError("Enter a valid price (e.g. 249.00).");
       return;
@@ -312,6 +363,11 @@ export function ProductFormModal({
     }
     const quantityAvailable = quantityParsed;
 
+    if (customCategorySelected && !form.categoryName.trim()) {
+      setError("Enter your custom category name.");
+      return;
+    }
+
     const compareRaw = form.compareAtPrice.trim();
     let compareAtPriceAmount: number | null | undefined;
     let clearCompareAtPrice: boolean | undefined;
@@ -319,7 +375,7 @@ export function ProductFormModal({
       compareAtPriceAmount = null;
       clearCompareAtPrice = mode === "edit" ? true : undefined;
     } else {
-      const parsedCompare = parsePriceToMinorUnits(compareRaw);
+      const parsedCompare = parsePrice(compareRaw);
       if (parsedCompare == null) {
         setError("Enter a valid compare-at price (e.g. 299.00).");
         return;
@@ -351,6 +407,20 @@ export function ProductFormModal({
         .filter((id) => Boolean(id.trim())),
       summary: form.summary.trim() || undefined,
     };
+
+    if (values.categoryName) {
+      const storedCategory = storeProductCategory(
+        workspaceId,
+        values.categoryName,
+      );
+      if (storedCategory) {
+        setStoredCategories((previous) =>
+          previous.some((category) => category.name === storedCategory.name)
+            ? previous
+            : [...previous, storedCategory],
+        );
+      }
+    }
 
     try {
       await onSubmit(values);
@@ -404,6 +474,7 @@ export function ProductFormModal({
           disabled={isSubmitting || aiGenerating}
         />
 
+        {/* Hidden for the current demo — restore this block to show AI draft again.
         <div className="rounded-md border border-primary-blue/15 bg-blue-gray/40 px-3 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
@@ -433,6 +504,7 @@ export function ProductFormModal({
             </button>
           </div>
         </div>
+        */}
 
         <div>
           <label htmlFor="product-form-title" className={labelClass}>
@@ -513,10 +585,10 @@ export function ProductFormModal({
               checked={form.compareAtPrice.trim().length > 0}
               onCheckedChange={(checked) => {
                 if (checked === true) {
-                  const price = parsePriceToMinorUnits(form.price);
+                  const price = parsePrice(form.price);
                   const suggested =
                     price != null
-                      ? formatMinorUnits(Math.round(price * 1.2))
+                      ? formatPriceForInput(Math.round(price * 1.2 * 100) / 100)
                       : "";
                   update("compareAtPrice", suggested || "");
                 } else {
@@ -559,21 +631,100 @@ export function ProductFormModal({
             <label htmlFor="product-form-category" className={labelClass}>
               Category
             </label>
-            <input
-              id="product-form-category"
-              type="text"
-              list="product-form-category-list"
-              value={form.categoryName}
-              onChange={(e) => update("categoryName", e.target.value)}
-              disabled={isSubmitting}
-              placeholder="Lighting"
-              className={fieldClass}
-            />
-            <datalist id="product-form-category-list">
-              {categories.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
+            <div className="relative">
+              <button
+                type="button"
+                id="product-form-category"
+                aria-haspopup="listbox"
+                aria-expanded={categoryMenuOpen}
+                onClick={() => setCategoryMenuOpen((open) => !open)}
+                disabled={isSubmitting}
+                className={`${fieldClass} relative flex items-center justify-between bg-blue-gray/20 pr-10 text-left transition-colors hover:border-primary-blue/25 hover:bg-blue-gray/30 disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                <span className="truncate">
+                  {customCategorySelected
+                    ? form.categoryName || "Other"
+                    : form.categoryName || "No category"}
+                </span>
+              </button>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-blue/55"
+                strokeWidth={1.8}
+              />
+              {categoryMenuOpen ? (
+                <div
+                  role="listbox"
+                  aria-label="Product category"
+                  className="absolute z-20 mt-1 max-h-40 w-full overflow-y-auto rounded-md border border-primary-blue/15 bg-white p-1 shadow-lg"
+                >
+                  {[
+                    { id: "none", name: "No category", value: "" },
+                    { id: "other", name: "Other", value: OTHER_CATEGORY_VALUE },
+                    ...(form.categoryName &&
+                    !selectableCategories.some(
+                      (category) => category.name === form.categoryName,
+                    )
+                      ? [
+                          {
+                            id: "current",
+                            name: form.categoryName,
+                            value: form.categoryName,
+                          },
+                        ]
+                      : []),
+                    ...selectableCategories.map((category) => ({
+                      id: category.id,
+                      name: category.name,
+                      value: category.name,
+                    })),
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        !customCategorySelected && form.categoryName === option.value
+                      }
+                      onClick={() => {
+                        if (option.value === OTHER_CATEGORY_VALUE) {
+                          setCustomCategorySelected(true);
+                          update("categoryName", "");
+                        } else {
+                          setCustomCategorySelected(false);
+                          update("categoryName", option.value);
+                        }
+                        setCategoryMenuOpen(false);
+                      }}
+                      className="block w-full rounded px-3 py-2 text-left font-sans text-sm text-primary-blue transition-colors hover:bg-blue-gray/30 aria-selected:bg-blue-gray/40"
+                    >
+                      {option.name}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {customCategorySelected ? (
+              <div className="mt-2 rounded-md border border-primary-blue/10 bg-blue-gray/15 p-2">
+                <label
+                  htmlFor="product-form-custom-category"
+                  className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-blue/55"
+                >
+                  Your category name
+                </label>
+                <input
+                  id="product-form-custom-category"
+                  type="text"
+                  value={form.categoryName}
+                  onChange={(e) => update("categoryName", e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="e.g. Handmade gifts"
+                  className={`${fieldClass} bg-white`}
+                  autoFocus
+                  required
+                />
+              </div>
+            ) : null}
           </div>
           <div>
             <label htmlFor="product-form-status" className={labelClass}>

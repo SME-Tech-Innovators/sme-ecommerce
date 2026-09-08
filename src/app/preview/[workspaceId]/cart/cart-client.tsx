@@ -10,6 +10,7 @@ import {
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { usePreviewStorefrontConfig } from "@/hooks/use-preview-storefront-config";
+import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
 import type { PreviewCartLine } from "@/types/preview-cart";
 
 type CartClientProps = {
@@ -348,10 +349,7 @@ function CheckoutStepView() {
         </label>
         <label className={`${labelClass} sm:col-span-2`}>
           Street address
-          <input
-            required
-            name="address"
-            autoComplete="street-address"
+          <StreetAddressAutocomplete
             className={fieldClass}
             placeholder="House number and street name"
           />

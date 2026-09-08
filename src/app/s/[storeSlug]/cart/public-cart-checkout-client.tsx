@@ -14,6 +14,7 @@ import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefr
 import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import { useCheckout } from "@/hooks/use-checkout";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
+import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
 
 type PublicCartCheckoutClientProps = {
@@ -394,12 +395,7 @@ export function PublicCartCheckoutClient({
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Street address
-                      <input
-                        required
-                        name="address"
-                        autoComplete="street-address"
-                        className={fieldClass}
-                      />
+                      <StreetAddressAutocomplete className={fieldClass} />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Apartment, suite (optional)
