@@ -148,11 +148,11 @@ export const DASHBOARD_SECTIONS: readonly DashboardSectionConfig[] = [
     label: "Settings",
     icon: "gear",
     panelTitle: "Settings",
-    panelSubtitle: "Payments and workspace preferences.",
+    panelSubtitle: "Payments, WhatsApp catalog, and workspace preferences.",
     empty: {
       title: "Workspace settings",
       description:
-        "Connect Paystack payouts under Payments so customers can pay on your live store.",
+        "Connect Paystack payouts and Meta WhatsApp catalog sync from the tabs below.",
     },
   },
 ] as const;
