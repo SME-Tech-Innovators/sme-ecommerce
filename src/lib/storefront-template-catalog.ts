@@ -38,6 +38,28 @@ export const STOREFRONT_TEMPLATE_CATALOG: StorefrontTemplateCatalogEntry[] = [
     previewImageUrl:
       "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
   },
+  {
+    id: "fresh-market",
+    name: "Fresh Market",
+    description:
+      "Warm, centred layout for spaza shops, grocers, and produce sellers — specials, categories, and stock-first copy.",
+    vibe: "Groceries & produce",
+    available: true,
+    templateVersion: 1,
+    previewImageUrl:
+      "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "urban-edge",
+    name: "Urban Edge",
+    description:
+      "Bold header bar and editorial hero for streetwear, sneakers, and urban retail brands.",
+    vibe: "Street & lifestyle",
+    available: true,
+    templateVersion: 1,
+    previewImageUrl:
+      "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1200&q=80",
+  },
 ];
 
 export function getStorefrontTemplateCatalogEntry(

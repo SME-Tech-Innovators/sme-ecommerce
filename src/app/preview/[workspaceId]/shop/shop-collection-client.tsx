@@ -16,6 +16,7 @@ import { useProducts } from "@/hooks/use-products";
 import { usePreviewStorefrontConfig } from "@/hooks/use-preview-storefront-config";
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { STOREFRONT_DEFAULT_MEDIA } from "@/lib/storefront-default-media";
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import {
   collectionPageIdFromShopCollection,
   resolveCollectionPage,
@@ -247,7 +248,7 @@ function ShopCollectionBody({ workspaceId }: ShopCollectionClientProps) {
                     imageUrl={p.imageUrl}
                     category={p.category}
                     variant={
-                      config.templateId === "minimal-catalogue"
+                      isCatalogueTemplate(config.templateId)
                         ? "catalogue"
                         : "default"
                     }

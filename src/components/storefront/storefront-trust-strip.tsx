@@ -1,3 +1,5 @@
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
+
 type TrustItem = {
   title: string;
   description: string;
@@ -47,7 +49,7 @@ export function StorefrontTrustStrip({
   className = "",
 }: StorefrontTrustStripProps) {
   const defaults =
-    templateId === "minimal-catalogue" ? CATALOGUE_TRUST : DEFAULT_TRUST;
+    isCatalogueTemplate(templateId) ? CATALOGUE_TRUST : DEFAULT_TRUST;
   const row = (items ?? defaults).slice(0, 3);
   return (
     <section

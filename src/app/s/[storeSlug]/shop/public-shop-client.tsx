@@ -15,6 +15,7 @@ import {
   usePublicStorefront,
 } from "@/hooks/use-public-storefront";
 import { STOREFRONT_DEFAULT_MEDIA } from "@/lib/storefront-default-media";
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import {
   collectionPageIdFromShopCollection,
   resolveCollectionPage,
@@ -229,7 +230,7 @@ function PublicShopBody({ storeSlug }: PublicShopClientProps) {
                     imageUrl={p.imageUrl}
                     category={p.category}
                     variant={
-                      config.templateId === "minimal-catalogue"
+                      isCatalogueTemplate(config.templateId)
                         ? "catalogue"
                         : "default"
                     }

@@ -26,6 +26,7 @@ import {
   defaultPromoImageUrl,
   withDefaultImageUrl,
 } from "@/lib/storefront-default-media";
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import { resolveStorefrontHref } from "@/lib/preview-shop-href";
 import type {
   StorefrontConfig,
@@ -136,7 +137,7 @@ export function StorefrontSectionRenderer({
   basePath,
   isEditing = false,
 }: StorefrontSectionRendererProps) {
-  const isCatalogue = config.templateId === "minimal-catalogue";
+  const isCatalogue = isCatalogueTemplate(config.templateId);
 
   switch (section.type) {
     case "hero": {
@@ -512,7 +513,7 @@ export function StorefrontSections({
   onEditSection?: (sectionId: string) => void;
   onRemoveSection?: (index: number) => void;
 }) {
-  const isCatalogue = config.templateId === "minimal-catalogue";
+  const isCatalogue = isCatalogueTemplate(config.templateId);
   const [dragState, setDragState] = useState<SectionDragState | null>(null);
   const dragStateRef = useRef<SectionDragState | null>(null);
   const scrollParentRef = useRef<HTMLElement | Window | null>(null);

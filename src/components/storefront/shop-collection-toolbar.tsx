@@ -3,6 +3,7 @@ import {
   type ShopCollectionFilter,
 } from "@/lib/preview-shop-href";
 import { resolveShopChrome } from "@/lib/storefront-collection-pages";
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import {
   shopCollectionCopyForTemplate,
   shopToolbarTitle,
@@ -70,7 +71,7 @@ export function ShopCollectionToolbar({
     categories.find((c) => c.slug === category)?.name,
   );
 
-  const isCatalogue = templateId === "minimal-catalogue";
+  const isCatalogue = isCatalogueTemplate(templateId);
 
   function go(next: {
     collection: ShopCollectionFilter;

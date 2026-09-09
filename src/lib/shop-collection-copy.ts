@@ -1,3 +1,4 @@
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import type { StorefrontTemplateId } from "@/types/storefront";
 import type { ShopCollectionFilter } from "@/lib/preview-shop-href";
 import type { StorefrontProductBadge } from "@/components/storefront/storefront-product-card";
@@ -39,7 +40,7 @@ const CATALOGUE_COPY: ShopCollectionCopy = {
 export function shopCollectionCopyForTemplate(
   templateId: StorefrontTemplateId | string | undefined,
 ): ShopCollectionCopy {
-  return templateId === "minimal-catalogue" ? CATALOGUE_COPY : BOUTIQUE_COPY;
+  return isCatalogueTemplate(templateId) ? CATALOGUE_COPY : BOUTIQUE_COPY;
 }
 
 export function shopToolbarTitle(
@@ -59,7 +60,7 @@ export function productBadgeLabel(
   badge: StorefrontProductBadge,
   templateId: StorefrontTemplateId | string | undefined,
 ): string {
-  if (templateId !== "minimal-catalogue") return badge;
+  if (!isCatalogueTemplate(templateId)) return badge;
   switch (badge) {
     case "Sale":
       return "Special";

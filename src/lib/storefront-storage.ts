@@ -1,5 +1,7 @@
 import defaultStorefrontJson from "@/data/default-storefront.json";
+import freshMarketStorefrontJson from "@/data/fresh-market-storefront.json";
 import minimalCatalogueStorefrontJson from "@/data/minimal-catalogue-storefront.json";
+import urbanEdgeStorefrontJson from "@/data/urban-edge-storefront.json";
 import {
   defaultCollectionPages,
   mergeCollectionPages,
@@ -803,6 +805,16 @@ export function getStorefrontSeedForTemplate(
   if (templateId === "minimal-catalogue") {
     return {
       ...(minimalCatalogueStorefrontJson as unknown as StorefrontSeed),
+    };
+  }
+  if (templateId === "fresh-market") {
+    return {
+      ...(freshMarketStorefrontJson as unknown as StorefrontSeed),
+    };
+  }
+  if (templateId === "urban-edge") {
+    return {
+      ...(urbanEdgeStorefrontJson as unknown as StorefrontSeed),
     };
   }
   return getDefaultStorefrontSeed();

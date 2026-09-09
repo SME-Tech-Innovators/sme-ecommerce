@@ -18,6 +18,7 @@ import {
   shopCollectionFromPageId,
 } from "@/lib/storefront-collection-pages";
 import { STOREFRONT_DEFAULT_MEDIA } from "@/lib/storefront-default-media";
+import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
 import { productApiToCatalog } from "@/lib/product-mapper";
 import type { ShopCollectionFilter } from "@/lib/preview-shop-href";
 import type { CatalogProduct } from "@/types/catalog-product";
@@ -197,7 +198,7 @@ export function StorefrontShopCollectionPreview({
                     imageUrl={p.imageUrl}
                     category={p.category}
                     variant={
-                      config.templateId === "minimal-catalogue"
+                      isCatalogueTemplate(config.templateId)
                         ? "catalogue"
                         : "default"
                     }

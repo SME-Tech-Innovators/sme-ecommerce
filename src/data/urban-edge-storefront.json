@@ -1,0 +1,272 @@
+{
+  "templateId": "urban-edge",
+  "themeId": "ink",
+  "configVersion": 5,
+  "shopName": "Urban Edge",
+  "tagline": "Street-ready essentials",
+  "navLinks": [
+    { "label": "Shop", "href": "@shop" },
+    { "label": "New arrivals", "href": "@shop/new" },
+    { "label": "Sale", "href": "@shop/sale" },
+    { "label": "Contact", "href": "@page:contact" }
+  ],
+  "activeNavIndex": 0,
+  "heroBackgroundImageUrl": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=2000&q=80",
+  "heroHeading": "Drop season is live",
+  "heroSubheading": "Limited runs, bold silhouettes, and pieces built for the city.",
+  "heroPrimaryCta": { "label": "Shop collection", "href": "@shop" },
+  "heroSecondaryCta": { "label": "View sale", "href": "@shop/sale" },
+  "featuredTitle": "Featured arrivals",
+  "featuredViewAll": { "label": "View all →", "href": "@shop" },
+  "products": [
+    {
+      "title": "Titanium task light",
+      "priceLabel": "R 249.00",
+      "imageUrl": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "title": "Ceramic tea set",
+      "priceLabel": "R 189.00",
+      "imageUrl": "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "title": "Wireless headphones",
+      "priceLabel": "R 899.00",
+      "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "promos": [
+    {
+      "title": "Up to 30% off",
+      "description": "Seasonal favourites and limited pieces — while stocks last.",
+      "buttonLabel": "Shop sale",
+      "imageUrl": "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=1400&q=80",
+      "href": "@shop"
+    },
+    {
+      "title": "New in store",
+      "description": "Fresh arrivals for the week — curated, not cluttered.",
+      "buttonLabel": "Explore",
+      "imageUrl": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1200&q=80",
+      "href": "@shop"
+    }
+  ],
+  "features": [
+    {
+      "title": "Free shipping & returns",
+      "description": "Easy online returns on eligible orders.",
+      "icon": "truck"
+    },
+    {
+      "title": "Secure checkout",
+      "description": "Card payments are encrypted and secure.",
+      "icon": "check"
+    },
+    {
+      "title": "Helpful support",
+      "description": "Message us anytime — we reply fast.",
+      "icon": "sparkle"
+    }
+  ],
+  "sections": [
+    {
+      "id": "home-hero",
+      "type": "hero",
+      "imageUrl": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=2000&q=80",
+      "heading": "Drop season is live",
+      "subheading": "Limited runs, bold silhouettes, and pieces built for the city.",
+      "primaryCta": { "label": "Shop collection", "href": "@shop" },
+      "secondaryCta": { "label": "View sale", "href": "@shop" }
+    },
+    {
+      "id": "home-values",
+      "type": "features",
+      "title": "Why shop with us",
+      "items": [
+        {
+          "title": "Free shipping & returns",
+          "description": "Easy online returns on eligible orders.",
+          "icon": "truck"
+        },
+        {
+          "title": "Secure checkout",
+          "description": "Card payments are encrypted and secure.",
+          "icon": "check"
+        },
+        {
+          "title": "Helpful support",
+          "description": "Message us anytime — we reply fast.",
+          "icon": "sparkle"
+        }
+      ]
+    },
+    {
+      "id": "home-featured-products",
+      "type": "featuredProducts",
+      "title": "Featured arrivals",
+      "viewAll": { "label": "View all →", "href": "@shop" },
+      "limit": 4,
+      "products": [
+        {
+          "title": "Titanium task light",
+          "priceLabel": "R 249.00",
+          "imageUrl": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "title": "Ceramic tea set",
+          "priceLabel": "R 189.00",
+          "imageUrl": "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "title": "Wireless headphones",
+          "priceLabel": "R 899.00",
+          "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
+        }
+      ]
+    },
+    {
+      "id": "home-promo-sale",
+      "type": "promoBanner",
+      "title": "Up to 30% off",
+      "description": "Seasonal favourites and limited pieces — while stocks last.",
+      "buttonLabel": "Shop sale",
+      "imageUrl": "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=1400&q=80",
+      "href": "@shop"
+    },
+    {
+      "id": "home-promo-new",
+      "type": "promoBanner",
+      "title": "New in store",
+      "description": "Fresh arrivals for the week — curated, not cluttered.",
+      "buttonLabel": "Explore",
+      "imageUrl": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1200&q=80",
+      "href": "@shop"
+    },
+    {
+      "id": "home-contact",
+      "type": "contactCta",
+      "title": "Need help choosing?",
+      "body": "Message us and we will help you find the right pieces for your order.",
+      "buttonLabel": "Contact us",
+      "href": "@page:contact"
+    }
+  ],
+  "pages": [
+    {
+      "id": "page-contact",
+      "title": "Contact",
+      "slug": "contact",
+      "sections": [
+        {
+          "id": "contact-hero",
+          "type": "hero",
+          "imageUrl": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80",
+          "heading": "We're here to help",
+          "subheading": "Orders, sizing, or what to choose — reach out and we'll get back to you soon.",
+          "primaryCta": { "label": "Shop collection", "href": "@shop" },
+          "secondaryCta": null
+        },
+        {
+          "id": "contact-main",
+          "type": "contact",
+          "eyebrow": "Contact",
+          "title": "Get in touch",
+          "body": "Prefer WhatsApp for a quick reply, or leave a message and we'll follow up by email.",
+          "email": "hello@example.com",
+          "hours": "Mon–Fri, 9:00–17:00",
+          "note": "Usually replies within a few hours.",
+          "whatsappLabel": "Chat on WhatsApp",
+          "whatsappHref": "",
+          "formTitle": "Send a message",
+          "submitLabel": "Send message",
+          "successMessage": "Thanks — we have your message and will reply soon."
+        },
+        {
+          "id": "contact-faq",
+          "type": "faq",
+          "title": "Before you write",
+          "items": [
+            {
+              "question": "How do I track my order?",
+              "answer": "After checkout you'll get an order confirmation. Reply to that email or message us with your order number."
+            },
+            {
+              "question": "Do you ship everywhere?",
+              "answer": "We ship across South Africa. Delivery times depend on your location — ask us if you need a timeline."
+            },
+            {
+              "question": "What's the fastest way to reach you?",
+              "answer": "WhatsApp is usually fastest during business hours. Email works well for longer questions."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "collectionPages": {
+    "shop": {
+      "eyebrow": "Shop",
+      "title": "All products",
+      "description": "Browse the full collection — search, filter by category, or shop the sale.",
+      "imageUrl": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1400&q=80",
+      "chrome": {
+        "showSearch": true,
+        "showCollectionTabs": true,
+        "showCategoryFilters": true,
+        "tabAll": true,
+        "tabNew": true,
+        "tabSale": true
+      }
+    },
+    "new": {
+      "eyebrow": "Just landed",
+      "title": "New arrivals",
+      "description": "Fresh pieces added to the collection.",
+      "imageUrl": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1200&q=80",
+      "chrome": {
+        "showSearch": true,
+        "showCollectionTabs": true,
+        "showCategoryFilters": true,
+        "tabAll": true,
+        "tabNew": true,
+        "tabSale": true
+      }
+    },
+    "sale": {
+      "eyebrow": "Sale",
+      "title": "Offers on now",
+      "description": "Hand-picked deals while stocks last.",
+      "imageUrl": "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=1400&q=80",
+      "chrome": {
+        "showSearch": true,
+        "showCollectionTabs": true,
+        "showCategoryFilters": true,
+        "tabAll": true,
+        "tabNew": true,
+        "tabSale": true
+      }
+    }
+  },
+  "footerBlurb": "Thoughtful retail for everyday living — clear shopping, calm checkout, and support when you need it.",
+  "footerShopLinks": [
+    { "label": "Shop all", "href": "@shop" },
+    { "label": "New arrivals", "href": "@shop/new" },
+    { "label": "Sale", "href": "@shop/sale" },
+    { "label": "Contact", "href": "@page:contact" }
+  ],
+  "footerPolicyLinks": [
+    { "label": "Privacy policy", "href": "/privacy" },
+    { "label": "Terms of service", "href": "/terms" },
+    { "label": "Shipping info", "href": "#" },
+    { "label": "Returns", "href": "#" }
+  ],
+  "footerConnectLinks": [
+    { "label": "Contact us", "href": "@page:contact" },
+    { "label": "Instagram", "href": "#" },
+    { "label": "Journal", "href": "#" }
+  ],
+  "copyrightLine": "© 2026 SME Operations. All rights reserved.",
+  "cartCountLabel": "0",
+  "whatsappNumber": "+27 00 000 0000",
+  "accentColor": "#18181b"
+}
