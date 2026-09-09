@@ -1,11 +1,9 @@
+import { ArtisanAtelierSiteFooter } from "@/components/storefront/templates/artisan-atelier-site-footer";
+import { ArtisanAtelierSiteHeader } from "@/components/storefront/templates/artisan-atelier-site-header";
 import { ClassicBoutiqueSiteFooter } from "@/components/storefront/templates/classic-boutique-site-footer";
 import { ClassicBoutiqueSiteHeader } from "@/components/storefront/templates/classic-boutique-site-header";
-import { FreshMarketSiteFooter } from "@/components/storefront/templates/fresh-market-site-footer";
-import { FreshMarketSiteHeader } from "@/components/storefront/templates/fresh-market-site-header";
 import { MinimalCatalogueSiteFooter } from "@/components/storefront/templates/minimal-catalogue-site-footer";
 import { MinimalCatalogueSiteHeader } from "@/components/storefront/templates/minimal-catalogue-site-header";
-import { UrbanEdgeSiteFooter } from "@/components/storefront/templates/urban-edge-site-footer";
-import { UrbanEdgeSiteHeader } from "@/components/storefront/templates/urban-edge-site-header";
 import type { StorefrontConfig, StorefrontTemplateId } from "@/types/storefront";
 
 export type StorefrontChromeProps = {
@@ -19,8 +17,7 @@ function resolveTemplateId(config: StorefrontConfig): StorefrontTemplateId {
   const id = config.templateId;
   if (
     id === "minimal-catalogue" ||
-    id === "fresh-market" ||
-    id === "urban-edge" ||
+    id === "artisan-atelier" ||
     id === "classic-boutique"
   ) {
     return id;
@@ -33,10 +30,8 @@ export function StorefrontSiteHeader(props: StorefrontChromeProps) {
   switch (resolveTemplateId(props.config)) {
     case "minimal-catalogue":
       return <MinimalCatalogueSiteHeader {...props} />;
-    case "fresh-market":
-      return <FreshMarketSiteHeader {...props} />;
-    case "urban-edge":
-      return <UrbanEdgeSiteHeader {...props} />;
+    case "artisan-atelier":
+      return <ArtisanAtelierSiteHeader {...props} />;
     default:
       return <ClassicBoutiqueSiteHeader {...props} />;
   }
@@ -49,10 +44,8 @@ export function StorefrontSiteFooter(
   switch (resolveTemplateId(props.config)) {
     case "minimal-catalogue":
       return <MinimalCatalogueSiteFooter {...props} />;
-    case "fresh-market":
-      return <FreshMarketSiteFooter {...props} />;
-    case "urban-edge":
-      return <UrbanEdgeSiteFooter {...props} />;
+    case "artisan-atelier":
+      return <ArtisanAtelierSiteFooter {...props} />;
     default:
       return <ClassicBoutiqueSiteFooter {...props} />;
   }

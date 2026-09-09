@@ -1,8 +1,7 @@
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
+import { ArtisanAtelierStorefront } from "@/components/storefront/templates/artisan-atelier-storefront";
 import { ClassicBoutiqueStorefront } from "@/components/storefront/templates/classic-boutique-storefront";
-import { FreshMarketStorefront } from "@/components/storefront/templates/fresh-market-storefront";
 import { MinimalCatalogueStorefront } from "@/components/storefront/templates/minimal-catalogue-storefront";
-import { UrbanEdgeStorefront } from "@/components/storefront/templates/urban-edge-storefront";
 import type { StorefrontConfig, StorefrontSection } from "@/types/storefront";
 
 type StorefrontTemplateViewProps = {
@@ -49,11 +48,8 @@ export function StorefrontTemplateView({
     case "minimal-catalogue":
       body = <MinimalCatalogueStorefront {...shared} />;
       break;
-    case "fresh-market":
-      body = <FreshMarketStorefront {...shared} />;
-      break;
-    case "urban-edge":
-      body = <UrbanEdgeStorefront {...shared} />;
+    case "artisan-atelier":
+      body = <ArtisanAtelierStorefront {...shared} />;
       break;
     default:
       body = <ClassicBoutiqueStorefront {...shared} />;

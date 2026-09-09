@@ -1,14 +1,13 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { Modal } from "@modals";
 import { StorefrontTemplateView } from "@/components/storefront/storefront-template-view";
 import {
-  STOREFRONT_TEMPLATE_CATALOG,
-  type StorefrontTemplateCatalogEntry,
-} from "@/lib/storefront-template-catalog";
-import { createInitialStorefrontFromSeed } from "@/lib/storefront-storage";
-import type { StorefrontConfig, StorefrontTemplateId } from "@/types/storefront";
+  useStorefrontTemplates,
+  useTemplatePreviewConfig,
+} from "@/hooks/use-storefront-templates";
+import type { StorefrontTemplateListItem } from "@/types/storefront-template-api";
 
 type StorefrontTemplatePickerProps = {
   workspaceId?: string;
@@ -24,18 +23,6 @@ type StorefrontTemplatePickerProps = {
   }) => void | Promise<void>;
 };
 
-function previewConfigForTemplate(
-  entry: StorefrontTemplateCatalogEntry,
-): StorefrontConfig | null {
-  if (!entry.available) return null;
-  const config = createInitialStorefrontFromSeed(entry.id);
-  if (config.templateId !== entry.id) return null;
-  return {
-    ...config,
-    templateId: entry.id as StorefrontTemplateId,
-  };
-}
-
 export function StorefrontTemplatePicker({
   workspaceId,
   activeTemplateId = null,
@@ -44,24 +31,53 @@ export function StorefrontTemplatePicker({
   onCancel,
   onApply,
 }: StorefrontTemplatePickerProps) {
-  const templates = STOREFRONT_TEMPLATE_CATALOG.filter((t) => t.available);
+  const templatesQuery = useStorefrontTemplates();
+  const templates = templatesQuery.data ?? [];
   const [previewEntry, setPreviewEntry] =
-    useState<StorefrontTemplateCatalogEntry | null>(null);
+    useState<StorefrontTemplateListItem | null>(null);
   const [previewViewport, setPreviewViewport] = useState<"desktop" | "mobile">(
     "desktop",
   );
 
-  const previewModalConfig = useMemo(
-    () => (previewEntry ? previewConfigForTemplate(previewEntry) : null),
-    [previewEntry],
+  const previewConfigQuery = useTemplatePreviewConfig(
+    previewEntry,
+    Boolean(previewEntry),
   );
+
   const previewTitleId = useId();
   const previewIsActive =
     Boolean(previewEntry) && previewEntry?.id === activeTemplateId;
 
-  function openPreview(entry: StorefrontTemplateCatalogEntry) {
+  function openPreview(entry: StorefrontTemplateListItem) {
     setPreviewViewport("desktop");
     setPreviewEntry(entry);
+  }
+
+  if (templatesQuery.isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
+        Loading templates…
+      </div>
+    );
+  }
+
+  if (templatesQuery.isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+        <p className="font-sans text-sm text-red-700">
+          {templatesQuery.error instanceof Error
+            ? templatesQuery.error.message
+            : "Could not load templates."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void templatesQuery.refetch()}
+          className="font-sans text-sm font-semibold text-primary-blue underline"
+        >
+          Try again
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -116,7 +132,7 @@ export function StorefrontTemplatePicker({
                   onContinue={() =>
                     void onApply({
                       templateId: entry.id,
-                      templateVersion: entry.templateVersion,
+                      templateVersion: entry.latestVersion,
                     })
                   }
                 />
@@ -201,13 +217,32 @@ export function StorefrontTemplatePicker({
                 : "w-full rounded-lg"
             }`}
           >
-            {previewModalConfig ? (
+            {previewConfigQuery.isLoading ? (
+              <div className="flex min-h-[20rem] items-center justify-center p-8 font-sans text-sm text-muted-foreground">
+                Loading preview…
+              </div>
+            ) : previewConfigQuery.data ? (
               <div className="pointer-events-none">
                 <StorefrontTemplateView
-                  config={previewModalConfig}
+                  config={previewConfigQuery.data}
                   workspaceId={workspaceId}
                   forceViewport={previewViewport}
                 />
+              </div>
+            ) : previewConfigQuery.isError ? (
+              <div className="flex min-h-[20rem] flex-col items-center justify-center gap-2 p-8 text-center font-sans text-sm text-red-700">
+                <p>
+                  {previewConfigQuery.error instanceof Error
+                    ? previewConfigQuery.error.message
+                    : "Preview could not be loaded."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void previewConfigQuery.refetch()}
+                  className="font-semibold text-primary-blue underline"
+                >
+                  Retry
+                </button>
               </div>
             ) : null}
           </div>
@@ -223,7 +258,7 @@ export function StorefrontTemplatePicker({
               setPreviewEntry(null);
               void onApply({
                 templateId: entry.id,
-                templateVersion: entry.templateVersion,
+                templateVersion: entry.latestVersion,
               });
             }}
             className="bg-primary-blue px-5 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -249,7 +284,7 @@ function TemplateCard({
   onPreview,
   onContinue,
 }: {
-  entry: StorefrontTemplateCatalogEntry;
+  entry: StorefrontTemplateListItem;
   workspaceId?: string;
   isCurrent: boolean;
   disabled: boolean;
@@ -257,10 +292,7 @@ function TemplateCard({
   onPreview: () => void;
   onContinue: () => void;
 }) {
-  const previewConfig = useMemo(
-    () => previewConfigForTemplate(entry),
-    [entry],
-  );
+  const previewConfigQuery = useTemplatePreviewConfig(entry);
 
   return (
     <article
@@ -271,7 +303,7 @@ function TemplateCard({
       }`}
     >
       <div className="relative h-56 w-full shrink-0 overflow-hidden bg-blue-gray/30 sm:h-64">
-        {previewConfig ? (
+        {previewConfigQuery.data ? (
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div
               className="origin-top-left"
@@ -281,18 +313,26 @@ function TemplateCard({
               }}
             >
               <StorefrontTemplateView
-                config={previewConfig}
+                config={previewConfigQuery.data}
                 workspaceId={workspaceId}
               />
             </div>
           </div>
-        ) : (
+        ) : previewConfigQuery.isLoading ? (
+          <div className="flex h-full items-center justify-center font-sans text-xs text-muted-foreground">
+            Loading preview…
+          </div>
+        ) : entry.previewImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={entry.previewImageUrl}
             alt=""
             className="h-full w-full object-cover"
           />
+        ) : (
+          <div className="flex h-full items-center justify-center font-sans text-xs text-muted-foreground">
+            Preview unavailable
+          </div>
         )}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent"
@@ -321,7 +361,7 @@ function TemplateCard({
         <div className="mt-auto flex flex-col gap-2 pt-1">
           <button
             type="button"
-            disabled={disabled || !previewConfig}
+            disabled={disabled}
             onClick={onPreview}
             className="w-full rounded-lg border border-primary-blue/20 bg-white px-3 py-2.5 font-sans text-sm font-semibold text-primary-blue transition-colors hover:bg-blue-gray/40 disabled:opacity-50"
           >

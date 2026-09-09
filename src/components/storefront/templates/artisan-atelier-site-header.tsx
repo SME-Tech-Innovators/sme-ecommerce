@@ -9,7 +9,7 @@ import {
 } from "@/lib/preview-shop-href";
 import type { StorefrontConfig, StorefrontLink } from "@/types/storefront";
 
-type UrbanEdgeSiteHeaderProps = {
+type ArtisanAtelierSiteHeaderProps = {
   config: StorefrontConfig;
   basePath?: string;
   workspaceId?: string;
@@ -32,10 +32,10 @@ function NavLink({
     <a
       href={resolvedHref}
       aria-current={active ? "page" : undefined}
-      className={`shrink-0 whitespace-nowrap font-sans text-[13px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+      className={`shrink-0 whitespace-nowrap font-sans text-sm transition-colors ${
         active
-          ? "text-white"
-          : "text-white/70 hover:text-white"
+          ? "font-medium text-[color:var(--sf-accent)]"
+          : "text-[color:var(--sf-accent-text-65)] hover:text-[color:var(--sf-accent)]"
       }`}
     >
       {link.label}
@@ -48,7 +48,7 @@ function HeaderNav({
   basePath,
   workspaceId,
   forceViewport,
-}: UrbanEdgeSiteHeaderProps) {
+}: ArtisanAtelierSiteHeaderProps) {
   const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
   const search = searchParams?.toString() ?? "";
@@ -64,27 +64,25 @@ function HeaderNav({
     forceViewport === "mobile" || forceViewport == null;
 
   return (
-    <header className="sticky top-0 z-20 bg-[color:var(--sf-accent)] text-white shadow-md">
-      <div className="mx-auto flex max-w-[100%] items-center justify-between gap-4 px-4 py-3.5 @sm/storefront:px-8">
-        <div className="min-w-0 shrink">
-          <p className="truncate font-sans text-sm font-bold uppercase tracking-[0.24em] @sm/storefront:text-base">
+    <header className="sticky top-0 z-20 border-b border-[color:var(--sf-accent-border-10)] bg-[color:var(--sf-page-bg)]/95 backdrop-blur-md">
+      <div className="mx-auto flex max-w-[100%] items-center justify-between gap-4 px-4 py-4 @sm/storefront:px-8">
+        <div className="min-w-0 flex-1 @lg/storefront:hidden">
+          <p className="truncate font-serif text-lg font-light text-[color:var(--sf-accent)]">
             {config.shopName}
           </p>
-          {config.tagline?.trim() ? (
-            <p className="mt-0.5 hidden truncate font-sans text-[11px] text-white/65 @sm/storefront:block">
-              {config.tagline}
-            </p>
-          ) : null}
         </div>
         {showDesktopNav ? (
           <nav
             className={
               forceViewport === "desktop"
-                ? "flex min-w-0 flex-1 items-center justify-center gap-8"
-                : "hidden min-w-0 flex-1 items-center justify-center gap-8 @lg/storefront:flex"
+                ? "flex min-w-0 flex-1 items-center justify-center gap-10"
+                : "hidden min-w-0 flex-1 items-center justify-center gap-10 @lg/storefront:flex"
             }
             aria-label="Storefront"
           >
+            <p className="font-serif text-xl font-light tracking-tight text-[color:var(--sf-accent)]">
+              {config.shopName}
+            </p>
             {resolvedLinks.map(({ link, href }, i) => (
               <NavLink
                 key={`${link.label}-${i}`}
@@ -96,18 +94,18 @@ function HeaderNav({
             ))}
           </nav>
         ) : null}
-        <StorefrontHeaderCart config={config} variant="inverse" />
+        <StorefrontHeaderCart config={config} />
       </div>
       {showMobileNav ? (
         <div
           className={
             forceViewport === "mobile"
-              ? "border-t border-white/15"
-              : "border-t border-white/15 @lg/storefront:hidden"
+              ? "border-t border-[color:var(--sf-accent-border-5)]"
+              : "border-t border-[color:var(--sf-accent-border-5)] @lg/storefront:hidden"
           }
         >
           <nav
-            className="flex gap-5 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-6 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Storefront mobile"
           >
             {resolvedLinks.map(({ link, href }, i) => (
@@ -126,12 +124,12 @@ function HeaderNav({
   );
 }
 
-export function UrbanEdgeSiteHeader(props: UrbanEdgeSiteHeaderProps) {
+export function ArtisanAtelierSiteHeader(props: ArtisanAtelierSiteHeaderProps) {
   return (
     <Suspense
       fallback={
-        <header className="sticky top-0 z-20 bg-[color:var(--sf-accent)] px-4 py-3.5 text-white @sm/storefront:px-8">
-          <p className="font-sans text-sm font-bold uppercase tracking-[0.24em]">
+        <header className="sticky top-0 z-20 border-b border-[color:var(--sf-accent-border-10)] bg-[color:var(--sf-page-bg)] px-4 py-4 @sm/storefront:px-8">
+          <p className="text-center font-serif text-lg text-[color:var(--sf-accent)]">
             {props.config.shopName}
           </p>
         </header>

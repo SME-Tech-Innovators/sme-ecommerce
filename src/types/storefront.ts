@@ -1,8 +1,7 @@
 export type StorefrontTemplateId =
   | "classic-boutique"
   | "minimal-catalogue"
-  | "fresh-market"
-  | "urban-edge";
+  | "artisan-atelier";
 
 /** Visual preset (surfaces + default accent). See `src/lib/storefront-themes.ts`. */
 export type StorefrontThemeId =

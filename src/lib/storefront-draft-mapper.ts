@@ -1,8 +1,5 @@
-import {
-  getDefaultStorefrontSeed,
-  upgradeStorefrontConfig,
-} from "@/lib/storefront-storage";
-import type { StorefrontConfig, StorefrontTemplateId } from "@/types/storefront";
+import { apiStorefrontConfigToStorefrontConfig } from "@/lib/storefront-template-config-mapper";
+import type { StorefrontConfig } from "@/types/storefront";
 import type { StorefrontDraft, UpdateStorefrontDraftBody } from "@/types/workspace";
 
 function parseUpdatedAt(value: unknown): number {
@@ -25,27 +22,12 @@ function parseUpdatedAt(value: unknown): number {
  * Runs `upgradeStorefrontConfig` so older/simpler backend seeds still render.
  */
 export function storefrontDraftToConfig(draft: StorefrontDraft): StorefrontConfig {
-  const seed = getDefaultStorefrontSeed();
   const raw = draft.config ?? {};
-  const merged = {
-    ...seed,
-    ...raw,
-    templateId: (String(raw.templateId || draft.templateId || seed.templateId) ||
-      "classic-boutique") as StorefrontTemplateId,
-    configVersion: Number(
-      raw.configVersion ?? draft.configVersion ?? seed.configVersion,
-    ),
-    products: Array.isArray(raw.products) ? raw.products : seed.products,
-    sections: Array.isArray(raw.sections) ? raw.sections : seed.sections,
-    pages: Array.isArray(raw.pages) ? raw.pages : seed.pages,
-    collectionPages:
-      raw.collectionPages && typeof raw.collectionPages === "object"
-        ? (raw.collectionPages as StorefrontConfig["collectionPages"])
-        : seed.collectionPages,
+  return apiStorefrontConfigToStorefrontConfig(raw, {
+    templateId: draft.templateId,
+    configVersion: draft.configVersion,
     updatedAt: parseUpdatedAt(raw.updatedAt ?? draft.updatedAt),
-  } as StorefrontConfig;
-
-  return upgradeStorefrontConfig(merged);
+  });
 }
 
 /** Builds the PUT body expected by Step 01 `UpdateStorefrontDraftRequest`. */

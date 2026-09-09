@@ -1,7 +1,4 @@
-import defaultStorefrontJson from "@/data/default-storefront.json";
-import freshMarketStorefrontJson from "@/data/fresh-market-storefront.json";
-import minimalCatalogueStorefrontJson from "@/data/minimal-catalogue-storefront.json";
-import urbanEdgeStorefrontJson from "@/data/urban-edge-storefront.json";
+import { getStorefrontConfigFallback } from "@/lib/storefront-config-fallback";
 import {
   defaultCollectionPages,
   mergeCollectionPages,
@@ -711,7 +708,10 @@ export function upgradeStorefrontConfig(raw: StorefrontConfig): StorefrontConfig
   const baseConfig = {
     ...seed,
     ...legacy,
-    configVersion: 4,
+    configVersion: Math.max(
+      Number(legacy.configVersion ?? seed.configVersion ?? 4),
+      4,
+    ),
     themeId,
     heroBackgroundImageUrl: heroBg,
     navLinks,
@@ -795,37 +795,7 @@ export function saveStorefront(
   }
 }
 
+/** @deprecated Prefer API template seeds; kept for config merge fallbacks only. */
 export function getDefaultStorefrontSeed(): StorefrontSeed {
-  return { ...(defaultStorefrontJson as unknown as StorefrontSeed) };
-}
-
-export function getStorefrontSeedForTemplate(
-  templateId: StorefrontTemplateId | string,
-): StorefrontSeed {
-  if (templateId === "minimal-catalogue") {
-    return {
-      ...(minimalCatalogueStorefrontJson as unknown as StorefrontSeed),
-    };
-  }
-  if (templateId === "fresh-market") {
-    return {
-      ...(freshMarketStorefrontJson as unknown as StorefrontSeed),
-    };
-  }
-  if (templateId === "urban-edge") {
-    return {
-      ...(urbanEdgeStorefrontJson as unknown as StorefrontSeed),
-    };
-  }
-  return getDefaultStorefrontSeed();
-}
-
-export function createInitialStorefrontFromSeed(
-  templateId: StorefrontTemplateId | string = "classic-boutique",
-): StorefrontConfig {
-  const seed = getStorefrontSeedForTemplate(templateId);
-  return upgradeStorefrontConfig({
-    ...seed,
-    updatedAt: Date.now(),
-  } as StorefrontConfig);
+  return getStorefrontConfigFallback();
 }

@@ -2168,11 +2168,7 @@ export function StorefrontEditor({
       body = (
         <div className="space-y-4">
           <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-            Shown in the header and footer. Defaults live in{" "}
-            <code className="rounded bg-blue-gray/50 px-1 text-[11px]">
-              default-storefront.json
-            </code>
-            .
+            Shown in the header and footer across your storefront.
           </p>
           <Field
             label="Brand name (header & footer)"

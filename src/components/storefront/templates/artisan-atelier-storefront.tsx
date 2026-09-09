@@ -1,9 +1,9 @@
 import { StorefrontSections } from "@/components/storefront/sections/storefront-section-renderer";
-import { FreshMarketSiteFooter } from "@/components/storefront/templates/fresh-market-site-footer";
-import { FreshMarketSiteHeader } from "@/components/storefront/templates/fresh-market-site-header";
+import { ArtisanAtelierSiteFooter } from "@/components/storefront/templates/artisan-atelier-site-footer";
+import { ArtisanAtelierSiteHeader } from "@/components/storefront/templates/artisan-atelier-site-header";
 import type { StorefrontConfig, StorefrontSection } from "@/types/storefront";
 
-type FreshMarketStorefrontProps = {
+type ArtisanAtelierStorefrontProps = {
   config: StorefrontConfig;
   workspaceId?: string;
   basePath?: string;
@@ -15,7 +15,7 @@ type FreshMarketStorefrontProps = {
   onRemoveSection?: (index: number) => void;
 };
 
-export function FreshMarketStorefront({
+export function ArtisanAtelierStorefront({
   config,
   workspaceId,
   basePath,
@@ -25,10 +25,10 @@ export function FreshMarketStorefront({
   onAddSection,
   onEditSection,
   onRemoveSection,
-}: FreshMarketStorefrontProps) {
+}: ArtisanAtelierStorefrontProps) {
   return (
     <div className="@container/storefront min-h-full">
-      <FreshMarketSiteHeader
+      <ArtisanAtelierSiteHeader
         config={config}
         basePath={basePath}
         workspaceId={workspaceId}
@@ -45,7 +45,7 @@ export function FreshMarketStorefront({
         onEditSection={onEditSection}
         onRemoveSection={onRemoveSection}
       />
-      <FreshMarketSiteFooter
+      <ArtisanAtelierSiteFooter
         config={config}
         workspaceId={workspaceId}
         basePath={basePath}

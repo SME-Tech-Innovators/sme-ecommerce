@@ -13,6 +13,12 @@ import { NewArrivalsSection } from "@/components/storefront/sections/new-arrival
 import { SaleSection } from "@/components/storefront/sections/sale-section";
 import { ShopByCategorySection } from "@/components/storefront/sections/shop-by-category-section";
 import {
+  ArtisanAtelierContactCta,
+  ArtisanAtelierFeatures,
+  ArtisanAtelierHero,
+  ArtisanAtelierPromo,
+} from "@/components/storefront/templates/artisan-atelier-sections";
+import {
   MinimalCatalogueContactCta,
   MinimalCatalogueFaq,
   MinimalCatalogueFeatures,
@@ -26,7 +32,10 @@ import {
   defaultPromoImageUrl,
   withDefaultImageUrl,
 } from "@/lib/storefront-default-media";
-import { isCatalogueTemplate } from "@/lib/storefront-template-utils";
+import {
+  isArtisanAtelierTemplate,
+  isCatalogueTemplate,
+} from "@/lib/storefront-template-utils";
 import { resolveStorefrontHref } from "@/lib/preview-shop-href";
 import type {
   StorefrontConfig,
@@ -138,9 +147,19 @@ export function StorefrontSectionRenderer({
   isEditing = false,
 }: StorefrontSectionRendererProps) {
   const isCatalogue = isCatalogueTemplate(config.templateId);
+  const isAtelier = isArtisanAtelierTemplate(config.templateId);
 
   switch (section.type) {
     case "hero": {
+      if (isAtelier) {
+        return (
+          <ArtisanAtelierHero
+            section={section}
+            workspaceId={workspaceId}
+            basePath={basePath}
+          />
+        );
+      }
       if (isCatalogue) {
         return (
           <MinimalCatalogueHero
@@ -242,6 +261,15 @@ export function StorefrontSectionRenderer({
         />
       );
     case "promoBanner": {
+      if (isAtelier) {
+        return (
+          <ArtisanAtelierPromo
+            section={section}
+            workspaceId={workspaceId}
+            basePath={basePath}
+          />
+        );
+      }
       if (isCatalogue) {
         return (
           <MinimalCataloguePromo
@@ -362,6 +390,9 @@ export function StorefrontSectionRenderer({
         </section>
       );
     case "features":
+      if (isAtelier) {
+        return <ArtisanAtelierFeatures section={section} />;
+      }
       if (isCatalogue) {
         return <MinimalCatalogueFeatures section={section} />;
       }
@@ -418,6 +449,11 @@ export function StorefrontSectionRenderer({
         </section>
       );
     case "contactCta": {
+      if (isAtelier) {
+        return (
+          <ArtisanAtelierContactCta section={section} basePath={basePath} />
+        );
+      }
       if (isCatalogue) {
         return (
           <MinimalCatalogueContactCta section={section} basePath={basePath} />

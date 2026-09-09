@@ -1,10 +1,7 @@
-import {
-  getDefaultStorefrontSeed,
-  upgradeStorefrontConfig,
-} from "@/lib/storefront-storage";
+import { apiStorefrontConfigToStorefrontConfig } from "@/lib/storefront-template-config-mapper";
 import type { PublicStorefront } from "@/types/public-storefront";
 import type { StorefrontSection } from "@/types/storefront";
-import type { StorefrontConfig, StorefrontTemplateId } from "@/types/storefront";
+import type { StorefrontConfig } from "@/types/storefront";
 
 function parseUpdatedAt(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -46,30 +43,17 @@ function normalizePublicHomeSections(
 export function publicStorefrontToConfig(
   storefront: PublicStorefront,
 ): StorefrontConfig {
-  const seed = getDefaultStorefrontSeed();
-  const raw = storefront.config ?? {};
+  const raw = { ...(storefront.config ?? {}) };
   const rawSections = normalizePublicHomeSections(raw.sections);
-  const hasHeroSection = rawSections?.some(
-    (section) =>
-      section &&
-      typeof section === "object" &&
-      "type" in section &&
-      section.type === "hero",
-  );
-  const merged = {
-    ...raw,
-    templateId: (String(
-      raw.templateId || storefront.templateId || seed.templateId,
-    ) || "classic-boutique") as StorefrontTemplateId,
-    configVersion: Number(
-      raw.configVersion ?? storefront.configVersion ?? seed.configVersion,
-    ),
-    shopName: String(raw.shopName || storefront.storeName || seed.shopName),
-    products: Array.isArray(raw.products) ? raw.products : undefined,
-    sections: hasHeroSection ? rawSections : undefined,
-    pages: Array.isArray(raw.pages) ? raw.pages : undefined,
+  if (rawSections) {
+    raw.sections = rawSections;
+  }
+  if (!raw.shopName && storefront.storeName) {
+    raw.shopName = storefront.storeName;
+  }
+  return apiStorefrontConfigToStorefrontConfig(raw, {
+    templateId: storefront.templateId,
+    configVersion: storefront.configVersion,
     updatedAt: parseUpdatedAt(raw.updatedAt ?? storefront.publishedAt),
-  } as StorefrontConfig;
-
-  return upgradeStorefrontConfig(merged);
+  });
 }
