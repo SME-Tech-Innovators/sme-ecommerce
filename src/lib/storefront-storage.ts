@@ -9,8 +9,10 @@ import {
   defaultPromoImageUrl,
   withDefaultImageUrl,
 } from "@/lib/storefront-default-media";
+import { normalizeStorefrontFontPairId } from "@/lib/storefront-fonts";
 import {
   STOREFRONT_THEME_DEFINITIONS,
+  normalizeAccentColor,
   normalizeStorefrontThemeId,
 } from "@/lib/storefront-themes";
 import type {
@@ -700,17 +702,17 @@ export function upgradeStorefrontConfig(raw: StorefrontConfig): StorefrontConfig
   const themeId = normalizeStorefrontThemeId(
     rawThemeId ?? seed.themeId,
   ) as StorefrontThemeId;
-  const accentColor =
-    rawThemeId === "blue" || rawThemeId === "red"
-      ? String(legacy.accentColor || seed.accentColor)
-      : STOREFRONT_THEME_DEFINITIONS[themeId].defaultAccent;
+  const accentColor = normalizeAccentColor(
+    legacy.accentColor ?? seed.accentColor,
+    STOREFRONT_THEME_DEFINITIONS[themeId].defaultAccent,
+  );
 
   const baseConfig = {
     ...seed,
     ...legacy,
     configVersion: Math.max(
+      6,
       Number(legacy.configVersion ?? seed.configVersion ?? 4),
-      4,
     ),
     themeId,
     heroBackgroundImageUrl: heroBg,
@@ -745,6 +747,11 @@ export function upgradeStorefrontConfig(raw: StorefrontConfig): StorefrontConfig
     cartCountLabel: String(legacy.cartCountLabel ?? seed.cartCountLabel),
     shopName: String(legacy.shopName ?? seed.shopName),
     tagline: String(legacy.tagline ?? seed.tagline),
+    logoUrl: String(legacy.logoUrl ?? seed.logoUrl ?? ""),
+    faviconUrl: String(legacy.faviconUrl ?? seed.faviconUrl ?? ""),
+    fontPairId: normalizeStorefrontFontPairId(
+      legacy.fontPairId ?? seed.fontPairId,
+    ),
     featuredTitle: String(legacy.featuredTitle ?? seed.featuredTitle),
     heroHeading: String(legacy.heroHeading ?? seed.heroHeading),
     heroSubheading: String(legacy.heroSubheading ?? seed.heroSubheading),

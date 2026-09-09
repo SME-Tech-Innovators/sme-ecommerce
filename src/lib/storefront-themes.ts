@@ -142,6 +142,15 @@ function hexToRgb(hex: string): [number, number, number] | null {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+export function normalizeAccentColor(
+  raw: string | undefined,
+  fallback: string,
+): string {
+  const trimmed = raw?.trim() ?? "";
+  const withHash = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+  return hexToRgb(withHash) ? withHash.toLowerCase() : fallback;
+}
+
 function rgbaAccent(hex: string, alpha: number): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
@@ -207,8 +216,7 @@ export function resolveStorefrontTheme(
 ): StorefrontResolvedTheme {
   const def =
     STOREFRONT_THEME_DEFINITIONS[normalizeStorefrontThemeId(config.themeId)];
-  const trimmed = config.accentColor?.trim() ?? "";
-  const accent = hexToRgb(trimmed) ? trimmed : def.defaultAccent;
+  const accent = normalizeAccentColor(config.accentColor, def.defaultAccent);
   return { ...def, ...resolveAccentShades(accent) };
 }
 

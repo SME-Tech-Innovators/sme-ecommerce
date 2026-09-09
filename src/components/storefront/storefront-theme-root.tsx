@@ -1,6 +1,13 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { StorefrontFavicon } from "@/components/storefront/storefront-favicon";
+import { StorefrontFontLoader } from "@/components/storefront/storefront-font-loader";
+import {
+  buildGoogleFontsHref,
+  resolveStorefrontFontPair,
+  storefrontFontCssVars,
+} from "@/lib/storefront-fonts";
 import {
   resolveStorefrontTheme,
   storefrontThemeCssVars,
@@ -18,13 +25,24 @@ export function StorefrontThemeRoot({
   children,
 }: StorefrontThemeRootProps) {
   const theme = resolveStorefrontTheme(config);
+  const fonts = resolveStorefrontFontPair(config.fontPairId);
+  const style = {
+    ...storefrontThemeCssVars(theme),
+    ...storefrontFontCssVars(fonts),
+    fontFamily: "var(--sf-font-body)",
+  } as CSSProperties;
+
   return (
-    <div
-      data-storefront-template={config.templateId || "classic-boutique"}
-      className="min-h-full bg-[color:var(--sf-page-bg)] font-sans text-[color:var(--sf-body-text)]"
-      style={storefrontThemeCssVars(theme)}
-    >
-      {children}
-    </div>
+    <>
+      <StorefrontFontLoader href={buildGoogleFontsHref(fonts)} />
+      <StorefrontFavicon url={config.faviconUrl} />
+      <div
+        data-storefront-template={config.templateId || "classic-boutique"}
+        className="storefront-theme-root min-h-full text-[color:var(--sf-body-text)] [&_.font-serif]:[font-family:var(--sf-font-heading)] [&_.font-sans]:[font-family:var(--sf-font-body)]"
+        style={style}
+      >
+        {children}
+      </div>
+    </>
   );
 }

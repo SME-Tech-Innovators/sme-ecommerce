@@ -600,8 +600,8 @@ export function StorefrontPanel({ workspaceId }: StorefrontPanelProps) {
 
   const asideMobileHeightClass =
     customizeMode === "section"
-      ? "max-lg:min-h-0 max-lg:max-h-[calc(100dvh-6rem)] max-lg:flex-1"
-      : "max-lg:max-h-[min(60dvh,28rem)]";
+      ? "max-lg:min-h-0 max-lg:flex-1 max-lg:h-full"
+      : "max-lg:max-h-[min(60dvh,28rem)] max-lg:min-h-0";
 
   const previewLabel =
     previewPageId === "home"
@@ -622,9 +622,9 @@ export function StorefrontPanel({ workspaceId }: StorefrontPanelProps) {
         }
         draftUpdatedAt={config?.updatedAt ?? null}
       />
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row lg:items-stretch">
       <aside
-        className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-b border-primary-blue/10 bg-white ${asideMobileHeightClass} lg:sticky lg:top-0 lg:z-20 lg:max-h-[calc(100dvh-6rem)] lg:w-[min(100%,22rem)] lg:self-start lg:border-b-0 lg:border-r`}
+        className={`flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-b border-primary-blue/10 bg-white ${asideMobileHeightClass} lg:h-full lg:w-[min(100%,22rem)] lg:border-b-0 lg:border-r`}
       >
         <div className="flex shrink-0 flex-col gap-2 border-b border-primary-blue/10 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -673,7 +673,7 @@ export function StorefrontPanel({ workspaceId }: StorefrontPanelProps) {
           />
         </div>
         <footer
-          className={`sticky bottom-0 z-10 shrink-0 border-t border-primary-blue/10 bg-white/95 px-5 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/85 ${
+          className={`shrink-0 border-t border-primary-blue/10 bg-white px-5 py-3 ${
             customizeMode === "section" ? "max-lg:hidden" : ""
           }`}
         >

@@ -7,6 +7,7 @@ import {
   isStorefrontNavLinkActive,
   resolveStorefrontHref,
 } from "@/lib/preview-shop-href";
+import { StorefrontBrandMark } from "@/components/storefront/storefront-brand-mark";
 import type { StorefrontConfig, StorefrontLink } from "@/types/storefront";
 
 type MinimalCatalogueSiteHeaderProps = {
@@ -80,14 +81,7 @@ function HeaderNav({
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--sf-accent)]/15 bg-[color:var(--sf-page-bg)]">
       <div className="mx-auto flex max-w-[100%] items-center justify-between gap-4 px-4 py-3.5 @sm/storefront:px-8">
-        <div className="min-w-0">
-          <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--sf-accent-text-45)]">
-            Store
-          </p>
-          <p className="truncate font-sans text-base font-semibold tracking-tight text-[color:var(--sf-accent)] @sm/storefront:text-lg">
-            {config.shopName}
-          </p>
-        </div>
+        <StorefrontBrandMark config={config} variant="catalogue" />
         {showDesktopNav ? (
           <nav
             className={

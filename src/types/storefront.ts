@@ -1,3 +1,7 @@
+import type { StorefrontFontPairId } from "@/lib/storefront-fonts";
+
+export type { StorefrontFontPairId } from "@/lib/storefront-fonts";
+
 export type StorefrontTemplateId =
   | "classic-boutique"
   | "minimal-catalogue"
@@ -270,6 +274,12 @@ export type StorefrontConfig = {
 
   shopName: string;
   tagline: string;
+  /** Header/footer logo from workspace media. Empty = text brand mark. */
+  logoUrl: string;
+  /** Browser tab icon from workspace media. */
+  faviconUrl: string;
+  /** Google Fonts pair — see `src/lib/storefront-fonts.ts`. */
+  fontPairId: StorefrontFontPairId;
 
   /** Top nav (e.g. Shop, Collections, …) */
   navLinks: StorefrontLink[];

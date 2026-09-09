@@ -1,5 +1,6 @@
 import { defaultCollectionPages } from "@/lib/storefront-collection-pages";
 import { STOREFRONT_DEFAULT_MEDIA } from "@/lib/storefront-default-media";
+import { DEFAULT_STOREFRONT_FONT_PAIR_ID } from "@/lib/storefront-fonts";
 import type { StorefrontSeed } from "@/types/storefront";
 
 /**
@@ -10,9 +11,12 @@ export function getStorefrontConfigFallback(): StorefrontSeed {
   return {
     templateId: "classic-boutique",
     themeId: "blue",
-    configVersion: 5,
+    configVersion: 6,
     shopName: "Your shop",
     tagline: "",
+    logoUrl: "",
+    faviconUrl: "",
+    fontPairId: DEFAULT_STOREFRONT_FONT_PAIR_ID,
     navLinks: [
       { label: "Shop", href: "@shop" },
       { label: "Contact", href: "@page:contact" },

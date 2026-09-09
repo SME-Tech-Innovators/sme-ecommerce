@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { StorefrontBrandMark } from "@/components/storefront/storefront-brand-mark";
 import { StorefrontHeaderCart } from "@/components/storefront/storefront-header-cart";
 import {
   isStorefrontNavLinkActive,
@@ -67,9 +68,7 @@ function HeaderNav({
     <header className="sticky top-0 z-20 border-b border-[color:var(--sf-accent-border-10)] bg-[color:var(--sf-page-bg)]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-[100%] items-center justify-between gap-4 px-4 py-4 @sm/storefront:px-8">
         <div className="min-w-0 flex-1 @lg/storefront:hidden">
-          <p className="truncate font-serif text-lg font-light text-[color:var(--sf-accent)]">
-            {config.shopName}
-          </p>
+          <StorefrontBrandMark config={config} variant="classic" />
         </div>
         {showDesktopNav ? (
           <nav
@@ -80,9 +79,7 @@ function HeaderNav({
             }
             aria-label="Storefront"
           >
-            <p className="font-serif text-xl font-light tracking-tight text-[color:var(--sf-accent)]">
-              {config.shopName}
-            </p>
+            <StorefrontBrandMark config={config} variant="classic" />
             {resolvedLinks.map(({ link, href }, i) => (
               <NavLink
                 key={`${link.label}-${i}`}

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ImageUploadField } from "@/components/storefront/image-upload-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -16,7 +17,15 @@ import {
   defaultInstagramImageUrl,
   defaultPromoImageUrl,
 } from "@/lib/storefront-default-media";
-import { STOREFRONT_THEME_DEFINITIONS } from "@/lib/storefront-themes";
+import {
+  downloadStorefrontBrandKit,
+  parseStorefrontBrandKitImport,
+} from "@/lib/storefront-brand-kit";
+import { STOREFRONT_FONT_PAIRS } from "@/lib/storefront-fonts";
+import {
+  STOREFRONT_THEME_DEFINITIONS,
+  normalizeAccentColor,
+} from "@/lib/storefront-themes";
 import { isReservedStorefrontPageSlug } from "@/lib/storefront-reserved-slugs";
 import type {
   StorefrontCollectionPageConfig,
@@ -30,6 +39,7 @@ import type {
   StorefrontSection,
   StorefrontShopChromeConfig,
   StorefrontThemeId,
+  StorefrontFontPairId,
 } from "@/types/storefront";
 
 type StorefrontEditorSectionId =
@@ -538,6 +548,7 @@ export function StorefrontEditor({
   previewHref,
   sectionEditTarget,
 }: StorefrontEditorProps) {
+  const brandKitImportRef = useRef<HTMLInputElement>(null);
   const [section, setSection] = useState<StorefrontEditorSectionId>(
     EDITOR_SECTIONS[0].id,
   );
@@ -738,6 +749,36 @@ export function StorefrontEditor({
       themeId,
       accentColor: STOREFRONT_THEME_DEFINITIONS[themeId].defaultAccent,
     });
+  }
+
+  function selectFontPair(fontPairId: StorefrontFontPairId) {
+    patch({ fontPairId });
+  }
+
+  function patchAccentColor(raw: string) {
+    patch({
+      accentColor: normalizeAccentColor(
+        raw,
+        STOREFRONT_THEME_DEFINITIONS[config.themeId].defaultAccent,
+      ),
+    });
+  }
+
+  async function handleBrandKitImport(file: File | undefined) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+      const next = parseStorefrontBrandKitImport(parsed, config);
+      onChange(next);
+      toast.success("Brand kit imported", {
+        description: "Review your storefront, then save or publish.",
+      });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not import brand kit.",
+      );
+    }
   }
 
   function renderSectionLayoutField(item: StorefrontSection, index: number) {
@@ -1757,14 +1798,42 @@ export function StorefrontEditor({
   switch (section) {
     case "appearance":
       body = (
-        <div className="space-y-5">
+        <div className="space-y-6">
           <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-            Pick a colour preset for backgrounds, text, and buttons. Preview
-            updates immediately.
+            Choose colours and typography for your storefront. Changes show in
+            the preview immediately.
           </p>
           <div>
             <p className="mb-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-blue/60">
-              Theme presets
+              Brand colour
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="color"
+                aria-label="Brand accent colour"
+                value={normalizeAccentColor(
+                  config.accentColor,
+                  STOREFRONT_THEME_DEFINITIONS[config.themeId].defaultAccent,
+                )}
+                onChange={(e) => patchAccentColor(e.target.value)}
+                className="h-10 w-14 cursor-pointer border border-primary-blue/15 bg-white p-1"
+              />
+              <input
+                id="sf-accent-color"
+                value={config.accentColor}
+                onChange={(e) => patchAccentColor(e.target.value)}
+                placeholder="#0a2540"
+                aria-label="Brand accent hex colour"
+                className="max-w-[140px] border border-primary-blue/15 bg-white px-3 py-2 font-mono text-xs text-foreground outline-none focus-visible:border-primary-blue/35 focus-visible:ring-2 focus-visible:ring-primary-blue/15"
+              />
+            </div>
+            <p className="mt-2 font-sans text-[11px] leading-relaxed text-muted-foreground">
+              Used for buttons, links, and highlights across the storefront.
+            </p>
+          </div>
+          <div>
+            <p className="mb-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-blue/60">
+              Surface presets
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {Object.values(STOREFRONT_THEME_DEFINITIONS).map((t) => {
@@ -1790,6 +1859,41 @@ export function StorefrontEditor({
                     </span>
                     <span className="font-sans text-[11px] leading-snug text-muted-foreground">
                       {t.vibe}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-blue/60">
+              Typography
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {Object.values(STOREFRONT_FONT_PAIRS).map((pair) => {
+                const active = config.fontPairId === pair.id;
+                return (
+                  <button
+                    key={pair.id}
+                    type="button"
+                    onClick={() => selectFontPair(pair.id)}
+                    className={`border px-3 py-3 text-left transition-colors ${
+                      active
+                        ? "border-primary-blue bg-primary-blue/[0.04] ring-1 ring-primary-blue/20"
+                        : "border-primary-blue/12 bg-white hover:border-primary-blue/25"
+                    }`}
+                  >
+                    <span
+                      className="block font-semibold text-primary-blue"
+                      style={{ fontFamily: pair.headingFamily }}
+                    >
+                      {pair.label}
+                    </span>
+                    <span
+                      className="mt-1 block font-sans text-[11px] leading-snug text-muted-foreground"
+                      style={{ fontFamily: pair.bodyFamily }}
+                    >
+                      {pair.vibe}
                     </span>
                   </button>
                 );
@@ -2166,10 +2270,23 @@ export function StorefrontEditor({
       break;
     case "brand":
       body = (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-            Shown in the header and footer across your storefront.
+            Logo, name, and tagline appear in the header. Upload square PNG or
+            SVG-friendly images for best results.
           </p>
+          <ImageUploadField
+            workspaceId={workspaceId}
+            label="Logo"
+            value={config.logoUrl}
+            onChange={(logoUrl) => patch({ logoUrl })}
+          />
+          <ImageUploadField
+            workspaceId={workspaceId}
+            label="Favicon (browser tab icon)"
+            value={config.faviconUrl}
+            onChange={(faviconUrl) => patch({ faviconUrl })}
+          />
           <Field
             label="Brand name (header & footer)"
             id="sf-shop-name"
@@ -2182,6 +2299,42 @@ export function StorefrontEditor({
             value={config.tagline}
             onChange={(e) => patch({ tagline: e.target.value })}
           />
+          <div className="rounded-md border border-primary-blue/12 bg-blue-gray/20 px-3 py-3">
+            <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-blue/60">
+              Backup & restore
+            </p>
+            <p className="mt-2 font-sans text-[11px] leading-relaxed text-muted-foreground">
+              Download your full storefront look (brand, colours, fonts, pages,
+              and sections) as JSON, or import a saved kit into this workspace.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => downloadStorefrontBrandKit(config)}
+                className="border border-primary-blue/20 bg-white px-3 py-2 font-sans text-xs font-semibold text-primary-blue transition-colors hover:bg-blue-gray/30"
+              >
+                Download brand kit
+              </button>
+              <button
+                type="button"
+                onClick={() => brandKitImportRef.current?.click()}
+                className="border border-primary-blue/20 bg-white px-3 py-2 font-sans text-xs font-semibold text-primary-blue transition-colors hover:bg-blue-gray/30"
+              >
+                Import brand kit
+              </button>
+              <input
+                ref={brandKitImportRef}
+                type="file"
+                accept="application/json,.json"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  void handleBrandKitImport(file);
+                }}
+              />
+            </div>
+          </div>
         </div>
       );
       break;
@@ -2540,7 +2693,7 @@ export function StorefrontEditor({
           Editing {sectionLabel}
         </p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-4 pb-10">
         <h2 className="sr-only">{sectionLabel}</h2>
         {body}
       </div>
