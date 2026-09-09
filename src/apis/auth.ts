@@ -281,3 +281,84 @@ export async function verifyEmailToken(
     errorCode: json.error?.code,
   };
 }
+
+// ── Password reset ────────────────────────────────────────────────────────────
+
+type SimpleApiEnvelope = { success: boolean; data?: string; error?: { code?: string; message?: string } };
+
+export type PasswordResetResult =
+  | { ok: true; message: string }
+  | { ok: false; errorMessage: string; errorCode?: string };
+
+/** POST /auth/forgot-password — always returns 200; never reveals whether email exists. */
+export async function postForgotPassword(email: string): Promise<PasswordResetResult> {
+  const url = `${getSmeApiBaseUrl()}/auth/forgot-password`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  } catch {
+    return {
+      ok: false,
+      errorMessage: "Could not reach the server. Check your connection and try again.",
+    };
+  }
+
+  let json: SimpleApiEnvelope;
+  try {
+    json = (await res.json()) as SimpleApiEnvelope;
+  } catch {
+    return { ok: false, errorMessage: `Unexpected response (${res.status}).` };
+  }
+
+  if (json.success) {
+    return { ok: true, message: json.data ?? "Reset email sent if that address is registered." };
+  }
+
+  return {
+    ok: false,
+    errorMessage: json.error?.message ?? `Request failed (${res.status}).`,
+    errorCode: json.error?.code,
+  };
+}
+
+/** POST /auth/reset-password — validates token and sets the new password. */
+export async function postResetPassword(
+  token: string,
+  newPassword: string,
+): Promise<PasswordResetResult> {
+  const url = `${getSmeApiBaseUrl()}/auth/reset-password`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, newPassword }),
+    });
+  } catch {
+    return {
+      ok: false,
+      errorMessage: "Could not reach the server. Check your connection and try again.",
+    };
+  }
+
+  let json: SimpleApiEnvelope;
+  try {
+    json = (await res.json()) as SimpleApiEnvelope;
+  } catch {
+    return { ok: false, errorMessage: `Unexpected response (${res.status}).` };
+  }
+
+  if (json.success) {
+    return { ok: true, message: json.data ?? "Password reset successfully." };
+  }
+
+  return {
+    ok: false,
+    errorMessage: json.error?.message ?? `Request failed (${res.status}).`,
+    errorCode: json.error?.code,
+  };
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { ChevronDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AiProductDraftError,
@@ -97,16 +98,16 @@ function emptyForm(): FormState {
   };
 }
 
-function formatMinorUnits(amount: number): string {
-  return (amount / 100).toFixed(2);
+function formatPriceForInput(amount: number): string {
+  return Number(amount).toFixed(2);
 }
 
-function parsePriceToMinorUnits(input: string): number | null {
+function parsePrice(input: string): number | null {
   const cleaned = input.trim().replace(/R\s*/i, "").replace(/,/g, "");
   if (!cleaned) return null;
   const value = Number(cleaned);
   if (!Number.isFinite(value) || value < 0) return null;
-  return Math.round(value * 100);
+  return Math.round(value * 100) / 100; // preserve 2 d.p.
 }
 
 function normalizeStatus(raw: unknown): "DRAFT" | "ACTIVE" | "ARCHIVED" {
@@ -227,6 +228,16 @@ export function ProductFormModal({
       ) === index,
   );
 
+  // Check whether the OpenAI key is configured server-side.
+  // The status endpoint never exposes the key itself.
+  const { data: aiStatus } = useQuery<{ configured: boolean }>({
+    queryKey: ["ai-status"],
+    queryFn: () =>
+      fetch("/api/ai/status").then((r) => r.json() as Promise<{ configured: boolean }>),
+    staleTime: Infinity,
+  });
+  const aiAvailable = aiStatus?.configured === true;
+
   useEffect(() => {
     if (!open) return;
     setError(null);
@@ -237,10 +248,10 @@ export function ProductFormModal({
       setForm({
         title: product.title ?? "",
         sku: product.sku ?? "",
-        price: formatMinorUnits(Number(product.priceAmount ?? 0)),
+        price: formatPriceForInput(Number(product.priceAmount ?? 0)),
         compareAtPrice:
           product.compareAtPriceAmount != null
-            ? formatMinorUnits(Number(product.compareAtPriceAmount))
+            ? formatPriceForInput(Number(product.compareAtPriceAmount))
             : "",
         quantityAvailable: String(
           Math.max(0, Math.floor(Number(product.quantityAvailable ?? 0))),
@@ -277,7 +288,7 @@ export function ProductFormModal({
     setError(null);
     setAiGenerating(true);
     try {
-      const priceAmount = parsePriceToMinorUnits(form.price) ?? undefined;
+      const priceAmount = parsePrice(form.price) ?? undefined;
       const draft = await requestAiProductDraft({
         titleHint,
         notes: form.summary.trim() || undefined,
@@ -335,7 +346,7 @@ export function ProductFormModal({
       return;
     }
 
-    const priceAmount = parsePriceToMinorUnits(form.price);
+    const priceAmount = parsePrice(form.price);
     if (priceAmount == null) {
       setError("Enter a valid price (e.g. 249.00).");
       return;
@@ -364,7 +375,7 @@ export function ProductFormModal({
       compareAtPriceAmount = null;
       clearCompareAtPrice = mode === "edit" ? true : undefined;
     } else {
-      const parsedCompare = parsePriceToMinorUnits(compareRaw);
+      const parsedCompare = parsePrice(compareRaw);
       if (parsedCompare == null) {
         setError("Enter a valid compare-at price (e.g. 299.00).");
         return;
@@ -471,15 +482,23 @@ export function ProductFormModal({
                 Generate with AI
               </p>
               <p className="mt-0.5 font-sans text-[11px] leading-relaxed text-muted-foreground">
-                Upload a main image (or type a title), then draft title, summary,
-                and category. Review before saving.
+                {aiAvailable
+                  ? "Upload a main image (or type a title), then draft title, summary, and category. Review before saving."
+                  : "AI is not configured on this server. Add OPENAI_API_KEY to the server environment to enable this feature."}
               </p>
             </div>
             <button
               type="button"
               onClick={() => void handleGenerateWithAi()}
-              disabled={isSubmitting || aiGenerating}
-              className="shrink-0 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:opacity-60"
+              disabled={isSubmitting || aiGenerating || !aiAvailable}
+              title={
+                !aiAvailable
+                  ? "AI is not configured — add OPENAI_API_KEY to .env.local"
+                  : aiGenerating
+                    ? "Generating…"
+                    : "Generate title, summary and category with AI"
+              }
+              className="shrink-0 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {aiGenerating ? "Generating…" : "Generate with AI"}
             </button>
@@ -566,10 +585,10 @@ export function ProductFormModal({
               checked={form.compareAtPrice.trim().length > 0}
               onCheckedChange={(checked) => {
                 if (checked === true) {
-                  const price = parsePriceToMinorUnits(form.price);
+                  const price = parsePrice(form.price);
                   const suggested =
                     price != null
-                      ? formatMinorUnits(Math.round(price * 1.2))
+                      ? formatPriceForInput(Math.round(price * 1.2 * 100) / 100)
                       : "";
                   update("compareAtPrice", suggested || "");
                 } else {

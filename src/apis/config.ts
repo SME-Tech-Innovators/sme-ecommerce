@@ -1,11 +1,19 @@
-/** Base URL for SME Operations API (no trailing slash). Override with NEXT_PUBLIC_SME_API_BASE_URL. */
+/** Base URL for SME Operations API (no trailing slash). Must be set via NEXT_PUBLIC_SME_API_BASE_URL. */
 export function getSmeApiBaseUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_SME_API_BASE_URL?.trim().replace(
     /\/+$/,
     "",
   );
   if (fromEnv) return fromEnv;
-  return "https://sme-operations-gpgudcaud8bddgdu.canadacentral-01.azurewebsites.net/api/v1";
+  // No hardcoded fallback — require explicit configuration so local dev
+  // never accidentally targets the production backend.
+  if (typeof window !== "undefined") {
+    // Browser: derive from current origin as a safe local-dev fallback
+    return `${window.location.origin.replace(/\/+$/, "")}/api/v1`;
+  }
+  throw new Error(
+    "NEXT_PUBLIC_SME_API_BASE_URL is not set. Add it to your .env.local file.",
+  );
 }
 
 /**
