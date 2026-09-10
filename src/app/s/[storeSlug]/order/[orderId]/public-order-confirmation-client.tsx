@@ -14,7 +14,7 @@ import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefr
 import { useOrderConfirmation, useVerifyOrderPayment } from "@/hooks/use-checkout";
 import { useInitializeOrderPayment } from "@/hooks/use-payments";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
-import { formatMinorAmount } from "@/lib/format-money";
+import { formatMajorAmount } from "@/lib/format-money";
 import { paymentStatusLabel } from "@/lib/order-status";
 import {
   paystackCallbackPath,
@@ -283,7 +283,7 @@ export function PublicOrderConfirmationClient({
                     </span>
                   </span>
                   <span className="tabular-nums">
-                    {formatMinorAmount(item.totalAmount, item.currency)}
+                    {formatMajorAmount(item.totalAmount, item.currency)}
                   </span>
                 </li>
               ))}
@@ -292,19 +292,19 @@ export function PublicOrderConfirmationClient({
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>
-                  {formatMinorAmount(order.subtotalAmount, order.currency)}
+                  {formatMajorAmount(order.subtotalAmount, order.currency)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
                 <span>
-                  {formatMinorAmount(order.shippingAmount, order.currency)}
+                  {formatMajorAmount(order.shippingAmount, order.currency)}
                 </span>
               </div>
               <div className="flex justify-between text-base font-bold">
                 <span>Total</span>
                 <span>
-                  {formatMinorAmount(order.totalAmount, order.currency)}
+                  {formatMajorAmount(order.totalAmount, order.currency)}
                 </span>
               </div>
             </div>

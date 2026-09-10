@@ -11,7 +11,7 @@ import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-ro
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { useLookupPublicOrder } from "@/hooks/use-checkout";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
-import { formatMinorAmount } from "@/lib/format-money";
+import { formatMajorAmount } from "@/lib/format-money";
 import {
   formatShipTo,
   orderStatusLabel,
@@ -79,14 +79,14 @@ function OrderResultCard({
                 {item.title} × {item.quantity}
               </span>
               <span className="shrink-0 font-semibold">
-                {formatMinorAmount(item.totalAmount, item.currency)}
+                {formatMajorAmount(item.totalAmount, item.currency)}
               </span>
             </li>
           ))}
         </ul>
         <div className="mt-3 flex justify-between border-t border-[color:var(--sf-accent-border-10)] pt-3 font-sans text-sm font-bold text-[color:var(--sf-accent)]">
           <span>Total</span>
-          <span>{formatMinorAmount(order.totalAmount, order.currency)}</span>
+          <span>{formatMajorAmount(order.totalAmount, order.currency)}</span>
         </div>
       </div>
 
