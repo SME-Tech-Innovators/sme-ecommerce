@@ -7,7 +7,7 @@ import {
   useUpdateMerchantOrderStatus,
 } from "@/hooks/use-orders";
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
-import { formatMinorAmount } from "@/lib/format-money";
+import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
 import type { Order, OrderStatus } from "@/types/cart";
 
@@ -205,7 +205,7 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-primary-blue">
-                      {formatMinorAmount(order.totalAmount, order.currency)}
+                      {formatMajorAmount(order.totalAmount, order.currency)}
                     </td>
                   </tr>
                 );
@@ -300,14 +300,14 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                     </span>
                   </span>
                   <span className="tabular-nums">
-                    {formatMinorAmount(item.totalAmount, item.currency)}
+                    {formatMajorAmount(item.totalAmount, item.currency)}
                   </span>
                 </li>
               ))}
             </ul>
             <p className="text-right font-sans text-sm font-bold text-primary-blue">
               Total{" "}
-              {formatMinorAmount(selected.totalAmount, selected.currency)}
+              {formatMajorAmount(selected.totalAmount, selected.currency)}
             </p>
           </div>
         ) : (
