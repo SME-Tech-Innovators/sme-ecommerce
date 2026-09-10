@@ -21,7 +21,7 @@ import {
   type PreviewCartContextValue,
 } from "@/contexts/preview-cart-context";
 import { cartKeys } from "@/hooks/use-cart";
-import { formatMinorAmount } from "@/lib/format-money";
+import { formatMajorAmount } from "@/lib/format-money";
 import { stockFailureMessage } from "@/lib/stock";
 import {
   loadCartDisplayMap,
@@ -51,7 +51,7 @@ function toDisplayLines(
       title: meta?.title ?? "Product",
       sku: meta?.sku ?? "",
       imageUrl: meta?.imageUrl ?? "",
-      priceLabel: formatMinorAmount(item.unitPriceAmount, item.currency),
+      priceLabel: formatMajorAmount(item.unitPriceAmount, item.currency),
       quantity: item.quantity,
     };
   });
@@ -351,10 +351,10 @@ export function ApiCartProvider({ storeSlug, children }: ApiCartProviderProps) {
       isBusy,
       cartError,
       subtotalLabel: cart
-        ? formatMinorAmount(cart.subtotalAmount, cart.currency)
+        ? formatMajorAmount(cart.subtotalAmount, cart.currency)
         : null,
       totalLabel: cart
-        ? formatMinorAmount(cart.totalAmount, cart.currency)
+        ? formatMajorAmount(cart.totalAmount, cart.currency)
         : null,
       isDrawerOpen,
       isAddedModalOpen,
