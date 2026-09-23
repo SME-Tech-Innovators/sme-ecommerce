@@ -17,11 +17,14 @@ type StreetAddressAutocompleteProps = Omit<
   "name"
 > & {
   name?: string;
+  /** Fired after a suggestion fills the checkout address fields. */
+  onAddressApplied?: (item: ParsedCheckoutAddress) => void;
 };
 
 export function StreetAddressAutocomplete({
   name = "address",
   className,
+  onAddressApplied,
   ...inputProps
 }: StreetAddressAutocompleteProps) {
   const listId = useId();
@@ -79,6 +82,7 @@ export function StreetAddressAutocomplete({
     setFormFieldValue(form, "region", item.province);
     setFormFieldValue(form, "postalCode", item.postalCode);
     setFormFieldValue(form, "country", item.country);
+    onAddressApplied?.(item);
   }
 
   return (

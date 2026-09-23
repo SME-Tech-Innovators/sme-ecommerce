@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
+import { getAppOrigin } from "@/apis/config";
+import { postShippingQuote } from "@/apis/shipping";
 import {
   StorefrontButton,
   StorefrontButtonLink,
@@ -15,7 +23,20 @@ import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import { useCheckout } from "@/hooks/use-checkout";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
 import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
+import {
+  formatCheckoutModalLines,
+  shippingSummaryLabel,
+  StorefrontCheckoutConfirmModal,
+} from "@/components/storefront/storefront-checkout-confirm-modal";
+import { useInitializeOrderPayment } from "@/hooks/use-payments";
+import { formatMajorAmount, formatMinorAmount } from "@/lib/format-money";
+import {
+  paystackCallbackPath,
+  savePaystackReturnPath,
+} from "@/lib/paystack-return";
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
+import { shippingOptionLabel } from "@/lib/shipping-option-label";
+import type { ShippingAddress, ShippingOption } from "@/types/shipping";
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
@@ -28,6 +49,25 @@ const fieldClass =
 
 const labelClass =
   "font-sans text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--sf-accent)]";
+
+function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
+  const line1 = String(new FormData(form).get("address") ?? "").trim();
+  const line2 = String(new FormData(form).get("address2") ?? "").trim();
+  const city = String(new FormData(form).get("city") ?? "").trim();
+  const province = String(new FormData(form).get("region") ?? "").trim();
+  const postalCode = String(new FormData(form).get("postalCode") ?? "").trim();
+  const country =
+    String(new FormData(form).get("country") ?? "ZA").trim() || "ZA";
+  if (!line1 || !city) return null;
+  return {
+    line1,
+    ...(line2 ? { line2 } : {}),
+    city,
+    province,
+    postalCode,
+    country,
+  };
+}
 
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
@@ -74,7 +114,107 @@ export function PublicCartCheckoutClient({
   const cart = usePreviewCartOptional();
   const storefrontQuery = usePublicStorefront(storeSlug);
   const checkoutMutation = useCheckout(storeSlug);
+  const payMutation = useInitializeOrderPayment(storeSlug);
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
+  const lastQuoteKeyRef = useRef<string | null>(null);
   const [step, setStep] = useState<Step>("cart");
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [shippingRequired, setShippingRequired] = useState(false);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [addressQuoteTick, setAddressQuoteTick] = useState(0);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [confirmingPay, setConfirmingPay] = useState(false);
+
+  const bumpAddressQuote = useCallback(() => {
+    setAddressQuoteTick((t) => t + 1);
+  }, []);
+
+  const shippingOptionsCountRef = useRef(0);
+  shippingOptionsCountRef.current = shippingOptions.length;
+
+  const fetchDeliveryOptions = useCallback(async () => {
+    if (!cart?.cartId) {
+      return;
+    }
+    const form = checkoutFormRef.current;
+    if (!form) return;
+    const shippingAddress = readShippingAddress(form);
+    if (!shippingAddress) {
+      return;
+    }
+    const quoteKey = JSON.stringify(shippingAddress);
+    if (
+      lastQuoteKeyRef.current === quoteKey &&
+      shippingOptionsCountRef.current > 0
+    ) {
+      return;
+    }
+    lastQuoteKeyRef.current = quoteKey;
+    setQuoteLoading(true);
+    setShippingOptions([]);
+    setSelectedOptionId(null);
+    try {
+      const quoteBody = {
+        cartId: cart.cartId,
+        shippingAddress,
+      };
+      let result = await postShippingQuote(storeSlug, quoteBody);
+      if (!result.ok) {
+        if (result.errorCode === "SHIPPING_NOT_CONFIGURED") {
+          setShippingRequired(false);
+          return;
+        }
+        throw new Error(result.errorMessage);
+      }
+      let options = result.data.options;
+      let courierOptions = options.filter(
+        (o) => o.provider === "bobgo" || o.id.startsWith("bobgo:"),
+      );
+      if (courierOptions.length === 0 && options.some((o) => o.id === "pickup")) {
+        await new Promise((r) => setTimeout(r, 900));
+        const retry = await postShippingQuote(storeSlug, quoteBody);
+        if (retry.ok) {
+          const retryCourier = retry.data.options.filter(
+            (o) => o.provider === "bobgo" || o.id.startsWith("bobgo:"),
+          );
+          if (retryCourier.length > 0) {
+            result = retry;
+            options = retry.data.options;
+            courierOptions = retryCourier;
+          }
+        }
+      }
+      setShippingRequired(true);
+      setShippingOptions(options);
+      if (courierOptions.length === 0 && options.length > 0) {
+        toast.warning("Courier rates unavailable", {
+          description:
+            "Only pickup is available right now. Check the store’s delivery settings or try again.",
+        });
+        setSelectedOptionId(null);
+      } else if (courierOptions.length === 1) {
+        setSelectedOptionId(courierOptions[0].id);
+      } else if (courierOptions.length > 1) {
+        setSelectedOptionId(null);
+      }
+    } catch (error) {
+      lastQuoteKeyRef.current = null;
+      toast.error(
+        error instanceof Error ? error.message : "Could not load delivery options.",
+      );
+    } finally {
+      setQuoteLoading(false);
+    }
+  }, [cart?.cartId, storeSlug]);
+
+  useEffect(() => {
+    if (step !== "checkout") return;
+    const timer = window.setTimeout(() => {
+      void fetchDeliveryOptions();
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [addressQuoteTick, step, fetchDeliveryOptions]);
 
   if (storefrontQuery.isLoading) {
     return (
@@ -101,59 +241,130 @@ export function PublicCartCheckoutClient({
 
   const config = storefrontQuery.data.config;
   const lines = cart?.lines ?? [];
-  const busy = Boolean(cart?.isBusy || checkoutMutation.isPending);
+  const busy = Boolean(
+    cart?.isBusy ||
+      checkoutMutation.isPending ||
+      payMutation.isPending ||
+      confirmingPay,
+  );
   const canProceedCart = lines.length > 0 && !busy && Boolean(cart?.cartId);
   const canPlaceOrder = !busy && Boolean(cart?.cartId);
 
-  async function onCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const selectedOption =
+    shippingOptions.find((o) => o.id === selectedOptionId) ?? null;
+
+  const currency = cart?.currency ?? "ZAR";
+  const subtotalMajor = cart?.subtotalAmount ?? 0;
+  const shippingMinor = selectedOption?.amount ?? 0;
+  const orderTotalMajor = subtotalMajor + shippingMinor / 100;
+  const hasSubtotal = cart?.subtotalAmount != null;
+
+  async function placeOrderFromForm() {
     if (!cart?.cartId) {
-      toast.error("Your cart is empty or not ready yet.");
-      return;
+      throw new Error("Your cart is empty or not ready yet.");
     }
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get("fullName") ?? "").trim();
-    const email = String(form.get("email") ?? "").trim();
-    const phone = String(form.get("phone") ?? "").trim();
-    const line1 = String(form.get("address") ?? "").trim();
-    const line2 = String(form.get("address2") ?? "").trim();
-    const city = String(form.get("city") ?? "").trim();
-    const province = String(form.get("region") ?? "").trim();
-    const postalCode = String(form.get("postalCode") ?? "").trim();
-    const country = String(form.get("country") ?? "ZA").trim() || "ZA";
+    const form = checkoutFormRef.current;
+    if (!form) {
+      throw new Error("Checkout form is not ready.");
+    }
+    const formData = new FormData(form);
+    const name = String(formData.get("fullName") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const line1 = String(formData.get("address") ?? "").trim();
+    const line2 = String(formData.get("address2") ?? "").trim();
+    const city = String(formData.get("city") ?? "").trim();
+    const province = String(formData.get("region") ?? "").trim();
+    const postalCode = String(formData.get("postalCode") ?? "").trim();
+    const country = String(formData.get("country") ?? "ZA").trim() || "ZA";
 
     if (!email) {
-      toast.error("Please enter your email address.");
-      return;
+      throw new Error("Please enter your email address.");
+    }
+    if (shippingRequired && !selectedOption) {
+      throw new Error("Choose a delivery option before paying.");
     }
 
+    return checkoutMutation.mutateAsync({
+      cartId: cart.cartId,
+      customer: {
+        name,
+        phone,
+        email,
+      },
+      shippingAddress: {
+        line1,
+        ...(line2 ? { line2 } : {}),
+        city,
+        province,
+        postalCode,
+        country,
+      },
+      ...(selectedOption
+        ? {
+            shippingSelection: {
+              optionId: selectedOption.id,
+              provider: selectedOption.provider,
+              amount: selectedOption.amount,
+              currency: selectedOption.currency,
+              ...(selectedOption.bobgoRateToken
+                ? { bobgoRateToken: selectedOption.bobgoRateToken }
+                : {}),
+            },
+          }
+        : {}),
+    });
+  }
+
+  function openReviewModal() {
+    const form = checkoutFormRef.current;
+    if (!form) return;
+    if (!form.reportValidity()) return;
+    if (shippingRequired && !selectedOption) {
+      toast.error("Choose a delivery option to continue.");
+      return;
+    }
+    if (quoteLoading) {
+      toast.message("Loading delivery rates…", {
+        description: "Wait a moment, then try again.",
+      });
+      return;
+    }
+    setReviewModalOpen(true);
+  }
+
+  async function confirmReviewAndPay() {
+    setConfirmingPay(true);
     try {
-      const order = await checkoutMutation.mutateAsync({
-        cartId: cart.cartId,
-        customer: {
-          name,
-          phone,
-          email,
-        },
-        shippingAddress: {
-          line1,
-          ...(line2 ? { line2 } : {}),
-          city,
-          province,
-          postalCode,
-          country,
-        },
+      const order = await placeOrderFromForm();
+      cart?.discardCartSession?.();
+      const orderConfirmPath = `${basePath}/order/${order.id}`;
+      const callbackUrl = `${getAppOrigin()}${paystackCallbackPath()}`;
+      const payment = await payMutation.mutateAsync({
+        orderId: order.id,
+        callbackUrl,
       });
-      cart.discardCartSession?.();
-      toast.success("Order placed", {
-        description: `Reference ${order.orderNumber}. Continue to payment on the next screen.`,
-      });
-      router.push(`${basePath}/order/${order.id}`);
+      if (payment.reference) {
+        savePaystackReturnPath(payment.reference, orderConfirmPath);
+      }
+      if (payment.authorizationUrl) {
+        window.location.assign(payment.authorizationUrl);
+        return;
+      }
+      setConfirmingPay(false);
+      toast.error("Payment could not be started. Open your order to try again.");
+      router.push(orderConfirmPath);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Checkout failed.",
       );
+      setConfirmingPay(false);
     }
+  }
+
+  function onCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    openReviewModal();
   }
 
   const summaryTotals = (
@@ -164,15 +375,33 @@ export function PublicCartCheckoutClient({
       </div>
       <div className="flex justify-between gap-3">
         <span>Subtotal</span>
-        <span>{cart?.subtotalLabel ?? "—"}</span>
+        <span className="tabular-nums">
+          {cart
+            ? hasSubtotal
+              ? formatMajorAmount(subtotalMajor, currency)
+              : (cart.subtotalLabel ?? "—")
+            : "—"}
+        </span>
       </div>
       <div className="flex justify-between gap-3">
         <span>Shipping</span>
-        <span>R0.00</span>
+        <span>
+          {selectedOption
+            ? formatMinorAmount(selectedOption.amount, selectedOption.currency)
+            : shippingRequired
+              ? "Select option"
+              : formatMinorAmount(0, currency)}
+        </span>
       </div>
       <div className="flex justify-between gap-3 border-t border-[color:var(--sf-accent-border-10)] pt-3 text-base font-bold">
         <span>Total</span>
-        <span>{cart?.totalLabel ?? "—"}</span>
+        <span className="tabular-nums">
+          {cart
+            ? hasSubtotal
+              ? formatMajorAmount(orderTotalMajor, currency)
+              : (cart.totalLabel ?? "—")
+            : "—"}
+        </span>
       </div>
     </div>
   );
@@ -184,7 +413,10 @@ export function PublicCartCheckoutClient({
           type="button"
           className="w-full rounded-none font-bold"
           disabled={!canProceedCart}
-          onClick={() => setStep("checkout")}
+          onClick={() => {
+            setStep("checkout");
+            bumpAddressQuote();
+          }}
         >
           Proceed to checkout
         </StorefrontButton>
@@ -196,9 +428,9 @@ export function PublicCartCheckoutClient({
           type="submit"
           form="public-checkout-form"
           className="w-full rounded-none font-bold"
-          disabled={!canPlaceOrder}
+          disabled={!canPlaceOrder || quoteLoading}
         >
-          {checkoutMutation.isPending ? "Placing order…" : "Place order"}
+          Review & pay
         </StorefrontButton>
         {!compact ? (
           <StorefrontButton
@@ -221,7 +453,7 @@ export function PublicCartCheckoutClient({
           </button>
         )}
         <p className="pt-1 text-center font-sans text-[11px] text-[color:var(--sf-accent-text-45)]">
-          You’ll pay securely on the next step.
+          Confirm totals in a quick summary, then pay with Paystack.
         </p>
       </div>
     );
@@ -231,7 +463,7 @@ export function PublicCartCheckoutClient({
     <StorefrontThemeRoot config={config}>
       <div className="min-h-screen bg-[color:var(--sf-page-bg)] pb-28 lg:pb-0">
         <StorefrontSiteHeader config={config} basePath={basePath} />
-        <main className="w-full px-4 py-8 sm:px-8 sm:py-10">
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
           <CheckoutSteps step={step} />
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -257,7 +489,7 @@ export function PublicCartCheckoutClient({
             </p>
           ) : null}
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_min(100%,22rem)] xl:grid-cols-[minmax(0,1fr)_24rem] lg:gap-10">
             <div>
               {step === "cart" ? (
                 <section className="overflow-hidden bg-white shadow-sm">
@@ -351,18 +583,16 @@ export function PublicCartCheckoutClient({
                 </section>
               ) : (
                 <form
+                  ref={checkoutFormRef}
                   id="public-checkout-form"
                   onSubmit={(e) => void onCheckoutSubmit(e)}
-                  className="bg-white p-6 shadow-sm sm:p-8"
+                  className="space-y-6"
                 >
-                  <h2 className="font-sans text-base font-bold text-[color:var(--sf-accent)]">
-                    Customer & delivery
-                  </h2>
-                  <p className="mt-2 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
-                    Enter your details to place the order. You’ll pay securely
-                    next.
-                  </p>
-                  <div className="mt-7 grid gap-5 sm:grid-cols-2">
+                  <section className="bg-white p-5 shadow-sm sm:p-6">
+                    <h2 className="font-sans text-sm font-bold uppercase tracking-[0.12em] text-[color:var(--sf-accent)]">
+                      Contact
+                    </h2>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <label className={`${labelClass} sm:col-span-2`}>
                       Full name
                       <input
@@ -393,9 +623,20 @@ export function PublicCartCheckoutClient({
                         placeholder="+27"
                       />
                     </label>
+                    </div>
+                  </section>
+
+                  <section className="bg-white p-5 shadow-sm sm:p-6">
+                    <h2 className="font-sans text-sm font-bold uppercase tracking-[0.12em] text-[color:var(--sf-accent)]">
+                      Delivery address
+                    </h2>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <label className={`${labelClass} sm:col-span-2`}>
                       Street address
-                      <StreetAddressAutocomplete className={fieldClass} />
+                      <StreetAddressAutocomplete
+                        className={fieldClass}
+                        onAddressApplied={() => bumpAddressQuote()}
+                      />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Apartment, suite (optional)
@@ -408,6 +649,7 @@ export function PublicCartCheckoutClient({
                         name="city"
                         autoComplete="address-level2"
                         className={fieldClass}
+                        onBlur={() => bumpAddressQuote()}
                       />
                     </label>
                     <label className={labelClass}>
@@ -417,6 +659,7 @@ export function PublicCartCheckoutClient({
                         name="region"
                         autoComplete="address-level1"
                         className={fieldClass}
+                        onBlur={() => bumpAddressQuote()}
                       />
                     </label>
                     <label className={labelClass}>
@@ -426,6 +669,7 @@ export function PublicCartCheckoutClient({
                         name="postalCode"
                         autoComplete="postal-code"
                         className={fieldClass}
+                        onBlur={() => bumpAddressQuote()}
                       />
                     </label>
                     <label className={labelClass}>
@@ -435,9 +679,65 @@ export function PublicCartCheckoutClient({
                         defaultValue="ZA"
                         autoComplete="country"
                         className={fieldClass}
+                        onBlur={() => bumpAddressQuote()}
                       />
                     </label>
-                  </div>
+                    </div>
+
+                    <div className="mt-6 border-t border-[color:var(--sf-accent-border-10)] pt-5">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-sans text-sm font-bold text-[color:var(--sf-accent)]">
+                          Delivery method
+                        </h3>
+                        {quoteLoading ? (
+                          <span className="font-sans text-[11px] text-[color:var(--sf-accent-text-45)]">
+                            Updating rates…
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 font-sans text-xs text-[color:var(--sf-accent-text-60)]">
+                        Options load automatically when your address is complete.
+                      </p>
+                      {shippingOptions.length > 0 ? (
+                        <fieldset className="mt-4 space-y-2">
+                          <legend className="sr-only">Choose delivery</legend>
+                          {shippingOptions.map((option) => (
+                            <label
+                              key={option.id}
+                              className="flex cursor-pointer items-start gap-3 border border-[color:var(--sf-accent-border-10)] p-3 transition-colors has-[:checked]:border-[color:var(--sf-accent)] has-[:checked]:bg-[color:var(--sf-nav-hover-wash)]/40"
+                            >
+                              <input
+                                type="radio"
+                                name="shippingOption"
+                                className="mt-1"
+                                checked={selectedOptionId === option.id}
+                                onChange={() => setSelectedOptionId(option.id)}
+                              />
+                              <span className="min-w-0 flex-1 font-sans text-sm">
+                                <span className="font-semibold text-[color:var(--sf-accent)]">
+                                  {shippingOptionLabel(option)}
+                                </span>
+                                <span className="mt-0.5 block text-[color:var(--sf-accent-text-60)]">
+                                  {formatMinorAmount(option.amount, option.currency)}
+                                  {option.estimatedDays != null
+                                    ? ` · ~${option.estimatedDays} days`
+                                    : null}
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      ) : quoteLoading ? (
+                        <p className="mt-4 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
+                          Finding courier options for your address…
+                        </p>
+                      ) : (
+                        <p className="mt-4 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
+                          Enter street address and city to see delivery options.
+                        </p>
+                      )}
+                    </div>
+                  </section>
                 </form>
               )}
             </div>
@@ -455,10 +755,40 @@ export function PublicCartCheckoutClient({
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--sf-accent-border-10)] bg-[color:var(--sf-header-surface)] px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden">
           <div className="mb-2 flex items-center justify-between font-sans text-sm font-bold text-[color:var(--sf-accent)]">
             <span>Total</span>
-            <span className="tabular-nums">{cart?.totalLabel ?? "—"}</span>
+            <span className="tabular-nums">
+              {step === "checkout" && hasSubtotal
+                ? formatMajorAmount(orderTotalMajor, currency)
+                : (cart?.totalLabel ?? "—")}
+            </span>
           </div>
           {renderPrimaryActions(true)}
         </div>
+
+        <StorefrontCheckoutConfirmModal
+          open={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          onConfirm={() => void confirmReviewAndPay()}
+          confirming={confirmingPay}
+          title="Review & pay"
+          description="Confirm your order total. You’ll complete payment securely on Paystack."
+          confirmLabel="Confirm payment"
+          lines={formatCheckoutModalLines(lines)}
+          subtotalLabel={
+            hasSubtotal
+              ? formatMajorAmount(subtotalMajor, currency)
+              : (cart?.subtotalLabel ?? "—")
+          }
+          shippingLabel={shippingSummaryLabel(
+            selectedOption,
+            shippingRequired,
+            currency,
+          )}
+          totalLabel={
+            hasSubtotal
+              ? formatMajorAmount(orderTotalMajor, currency)
+              : (cart?.totalLabel ?? "—")
+          }
+        />
 
         <StorefrontSiteFooter config={config} basePath={basePath} />
       </div>

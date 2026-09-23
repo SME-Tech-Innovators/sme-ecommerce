@@ -51,6 +51,7 @@ export type OrderItem = {
 };
 
 export type Order = {
+  cancellationRequestStatus?: string | null;
   id: string;
   workspaceId: string;
   cartId: string | null;
@@ -86,6 +87,14 @@ export type UpdateCartItemBody = {
   quantity: number;
 };
 
+export type CheckoutShippingSelection = {
+  optionId: string;
+  provider?: string;
+  amount: number;
+  currency: string;
+  bobgoRateToken?: string;
+};
+
 export type CheckoutBody = {
   cartId: string;
   customer: {
@@ -101,6 +110,7 @@ export type CheckoutBody = {
     postalCode: string;
     country: string;
   };
+  shippingSelection?: CheckoutShippingSelection;
 };
 
 export type CartResult = { ok: true; data: Cart } | ParsedApiFailure;

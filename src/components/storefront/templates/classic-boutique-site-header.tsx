@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import {
   isStorefrontNavLinkActive,
+  withManageOrderLink,
   resolveStorefrontHref,
 } from "@/lib/preview-shop-href";
 import { StorefrontBrandMark } from "@/components/storefront/storefront-brand-mark";
@@ -78,7 +79,7 @@ function HeaderNav({
 
   const badge = cartBadgeLabel(cart, config.cartCountLabel);
 
-  const resolvedLinks = config.navLinks.map((link) => ({
+  const resolvedLinks = withManageOrderLink(config.navLinks, resolvedBase).map((link) => ({
     link,
     href: resolveStorefrontHref(link, resolvedBase),
   }));

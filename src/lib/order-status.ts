@@ -20,7 +20,7 @@ export function orderStatusLabel(status: OrderStatus): string {
     case "paid":
       return "Paid";
     case "processing":
-      return "Preparing";
+      return "In progress";
     case "fulfilled":
       return "Fulfilled";
     case "cancelled":
@@ -127,8 +127,8 @@ export function buildOrderTimeline(order: Order): OrderTimelineStep[] {
       id: "fulfilled",
       label: "Fulfilled",
       description: fulfilled
-        ? "Your order is complete."
-        : "You’ll see this when the store marks the order fulfilled.",
+        ? "Your order has been delivered."
+        : "Delivery status updates automatically from the carrier.",
       state: stateFor(fulfilled, preparing && !fulfilled),
     },
   ];

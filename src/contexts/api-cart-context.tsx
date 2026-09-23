@@ -356,6 +356,9 @@ export function ApiCartProvider({ storeSlug, children }: ApiCartProviderProps) {
       totalLabel: cart
         ? formatMajorAmount(cart.totalAmount, cart.currency)
         : null,
+      subtotalAmount: cart?.subtotalAmount,
+      totalAmount: cart?.totalAmount,
+      currency: cart?.currency,
       isDrawerOpen,
       isAddedModalOpen,
       openDrawer,

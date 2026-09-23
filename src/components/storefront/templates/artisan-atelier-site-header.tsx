@@ -6,6 +6,7 @@ import { StorefrontBrandMark } from "@/components/storefront/storefront-brand-ma
 import { StorefrontHeaderCart } from "@/components/storefront/storefront-header-cart";
 import {
   isStorefrontNavLinkActive,
+  withManageOrderLink,
   resolveStorefrontHref,
 } from "@/lib/preview-shop-href";
 import type { StorefrontConfig, StorefrontLink } from "@/types/storefront";
@@ -55,7 +56,7 @@ function HeaderNav({
   const search = searchParams?.toString() ?? "";
   const resolvedBase =
     basePath ?? (workspaceId ? `/preview/${workspaceId}` : undefined);
-  const resolvedLinks = config.navLinks.map((link) => ({
+  const resolvedLinks = withManageOrderLink(config.navLinks, resolvedBase).map((link) => ({
     link,
     href: resolveStorefrontHref(link, resolvedBase),
   }));

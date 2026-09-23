@@ -9,11 +9,16 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
+import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
+import { StorefrontCheckoutConfirmModal } from "@/components/storefront/storefront-checkout-confirm-modal";
+import { StorefrontOrderSuccessModal } from "@/components/storefront/storefront-order-success-modal";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { useOrderConfirmation, useVerifyOrderPayment } from "@/hooks/use-checkout";
 import { useInitializeOrderPayment } from "@/hooks/use-payments";
+import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
+import { bobGoPublicTrackingUrl } from "@/lib/bob-go-tracking-url";
 import { formatMajorAmount } from "@/lib/format-money";
 import { paymentStatusLabel } from "@/lib/order-status";
 import {
@@ -27,6 +32,29 @@ type PublicOrderConfirmationClientProps = {
   orderId: string;
 };
 
+type OrderConfirmationView = {
+  paymentStatus: string;
+  status: string;
+};
+
+function orderCanPay(
+  order: OrderConfirmationView | undefined,
+  returnedFromPaystack: boolean,
+  awaitingPaystack: boolean,
+): boolean {
+  if (!order) return false;
+  const isPaid =
+    order.paymentStatus === "paid" || order.status === "paid";
+  return (
+    !isPaid &&
+    !returnedFromPaystack &&
+    !awaitingPaystack &&
+    (order.paymentStatus === "unpaid" ||
+      order.paymentStatus === "initialized" ||
+      order.paymentStatus === "failed")
+  );
+}
+
 export function PublicOrderConfirmationClient({
   storeSlug,
   orderId,
@@ -35,6 +63,10 @@ export function PublicOrderConfirmationClient({
   const searchParams = useSearchParams();
   const storefrontQuery = usePublicStorefront(storeSlug);
   const [awaitingPaystack, setAwaitingPaystack] = useState(false);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [payModalDismissed, setPayModalDismissed] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successModalDismissed, setSuccessModalDismissed] = useState(false);
   const returnedFromPaystack = Boolean(
     searchParams.get("reference") || searchParams.get("trxref"),
   );
@@ -61,6 +93,19 @@ export function PublicOrderConfirmationClient({
     searchParams.get("trxref")?.trim() ||
     "";
 
+  const orderForShipping = orderQuery.data;
+  const isPaidForShipping =
+    orderForShipping?.paymentStatus === "paid" ||
+    orderForShipping?.status === "paid";
+  const shippingQuery = usePublicOrderShipping(
+    storeSlug,
+    orderId,
+    Boolean(isPaidForShipping),
+  );
+  const bobGoTrackingUrl = bobGoPublicTrackingUrl(
+    shippingQuery.data?.trackingReference,
+    shippingQuery.data?.trackingUrl,
+  );
   useEffect(() => {
     if (returnedFromPaystack) {
       setAwaitingPaystack(true);
@@ -90,8 +135,47 @@ export function PublicOrderConfirmationClient({
   useEffect(() => {
     if (orderQuery.data?.paymentStatus === "paid") {
       setAwaitingPaystack(false);
+      setPayModalOpen(false);
     }
   }, [orderQuery.data?.paymentStatus]);
+
+  useEffect(() => {
+    if (successModalDismissed) return;
+    const order = orderQuery.data;
+    if (!order) return;
+    const paid =
+      order.paymentStatus === "paid" || order.status === "paid";
+    if (paid) {
+      setSuccessModalOpen(true);
+    }
+  }, [
+    orderQuery.data,
+    orderQuery.data?.paymentStatus,
+    orderQuery.data?.status,
+    successModalDismissed,
+  ]);
+
+  function scrollToDeliverySection() {
+    setSuccessModalOpen(false);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("order-delivery")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  useEffect(() => {
+    if (payModalDismissed) return;
+    if (orderCanPay(orderQuery.data, returnedFromPaystack, awaitingPaystack)) {
+      setPayModalOpen(true);
+    }
+  }, [
+    orderQuery.data,
+    orderQuery.data?.paymentStatus,
+    returnedFromPaystack,
+    awaitingPaystack,
+    payModalDismissed,
+  ]);
 
   async function onPay() {
     try {
@@ -182,43 +266,29 @@ export function PublicOrderConfirmationClient({
     <StorefrontThemeRoot config={config}>
       <div className="min-h-screen bg-[color:var(--sf-page-bg)]">
         <StorefrontSiteHeader config={config} basePath={basePath} />
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-8">
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
           {isPaid ? (
-            <div className="border border-emerald-700/15 bg-emerald-50/80 px-5 py-6 sm:px-8 sm:py-8">
-              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800/70">
-                Payment confirmed
-              </p>
-              <h1 className="mt-3 font-serif text-3xl font-light text-[color:var(--sf-accent)] sm:text-4xl">
-                Thank you for your order
-              </h1>
-              <p className="mt-4 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-60)]">
-                Hi {order.customerName}, your payment to{" "}
-                <span className="font-semibold text-[color:var(--sf-accent)]">
-                  {businessName}
-                </span>{" "}
-                was successful. Order{" "}
-                <span className="font-semibold text-[color:var(--sf-accent)]">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--sf-accent-text-45)]">
+                  Order confirmed
+                </p>
+                <h1 className="mt-2 font-serif text-3xl font-light text-[color:var(--sf-accent)]">
                   {order.orderNumber}
-                </span>{" "}
-                is confirmed.
-              </p>
-              {order.customerEmail ? (
-                <p className="mt-3 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-60)]">
-                  A confirmation email will be sent to{" "}
-                  <span className="font-semibold text-[color:var(--sf-accent)]">
-                    {order.customerEmail}
-                  </span>{" "}
-                  by {businessName}’s order system.
+                </h1>
+                <p className="mt-2 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
+                  Payment received ·{" "}
+                  {formatMajorAmount(order.totalAmount, order.currency)}
                 </p>
-              ) : (
-                <p className="mt-3 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-60)]">
-                  We have your phone{" "}
-                  <span className="font-semibold text-[color:var(--sf-accent)]">
-                    {order.customerPhone}
-                  </span>{" "}
-                  if {businessName} needs to reach you about delivery.
-                </p>
-              )}
+              </div>
+              <StorefrontButton
+                type="button"
+                variant="outline"
+                className="rounded-none text-sm"
+                onClick={() => setSuccessModalOpen(true)}
+              >
+                Order confirmation
+              </StorefrontButton>
             </div>
           ) : (
             <div>
@@ -246,25 +316,34 @@ export function PublicOrderConfirmationClient({
                 returnedFromPaystack ||
                 order.paymentStatus === "initialized"
                   ? "Confirming your payment… this page updates automatically."
-                  : "Pay securely to confirm this order."}
+                  : "Complete payment to confirm this order."}
               </p>
               {canPay ? (
-                <div className="mt-6 space-y-2">
+                <div className="mt-5">
                   <StorefrontButton
                     type="button"
                     className="rounded-none"
                     disabled={payMutation.isPending}
-                    onClick={() => void onPay()}
+                    onClick={() => setPayModalOpen(true)}
                   >
-                    {payMutation.isPending ? "Opening payment…" : "Pay now"}
+                    Pay now
                   </StorefrontButton>
-                  <p className="font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-                    Card payments are encrypted and secure.
-                  </p>
                 </div>
               ) : null}
             </div>
           )}
+
+          {order.shippingAmount > 0 || isPaid ? (
+            <section
+              id="order-delivery"
+              className="mt-8 scroll-mt-24 border border-[color:var(--sf-accent-border-10)] bg-white p-6 shadow-sm"
+            >
+              <h2 className="font-sans text-sm font-bold uppercase tracking-[0.14em] text-[color:var(--sf-accent)]">
+                Delivery
+              </h2>
+              <OrderShippingStatusCard storeSlug={storeSlug} orderId={orderId} />
+            </section>
+          ) : null}
 
           <section className="mt-8 bg-white p-6 shadow-sm">
             <h2 className="font-sans text-sm font-bold uppercase tracking-[0.14em] text-[color:var(--sf-accent)]">
@@ -333,6 +412,57 @@ export function PublicOrderConfirmationClient({
             </StorefrontButtonLink>
           </div>
         </main>
+
+        {order && isPaid ? (
+          <StorefrontOrderSuccessModal
+            open={successModalOpen}
+            onClose={() => {
+              setSuccessModalDismissed(true);
+              setSuccessModalOpen(false);
+            }}
+            onViewDelivery={scrollToDeliverySection}
+            customerName={order.customerName}
+            businessName={businessName}
+            orderNumber={order.orderNumber}
+            totalAmount={order.totalAmount}
+            currency={order.currency}
+            customerEmail={order.customerEmail}
+            customerPhone={order.customerPhone}
+            homeHref={basePath}
+            shopHref={`${basePath}/shop`}
+            trackHref={`${basePath}/orders/track?orderNumber=${encodeURIComponent(order.orderNumber)}`}
+            bobGoTrackingUrl={bobGoTrackingUrl}
+          />
+        ) : null}
+
+        {order && canPay ? (
+          <StorefrontCheckoutConfirmModal
+            open={payModalOpen}
+            onClose={() => {
+              setPayModalDismissed(true);
+              setPayModalOpen(false);
+            }}
+            onConfirm={() => void onPay()}
+            confirming={payMutation.isPending}
+            title="Complete payment"
+            description={`Order ${order.orderNumber} · ${formatMajorAmount(order.totalAmount, order.currency)}`}
+            confirmLabel="Confirm payment"
+            lines={order.items.map((item) => ({
+              label: `${item.title} × ${item.quantity}`,
+              amountLabel: formatMajorAmount(item.totalAmount, item.currency),
+            }))}
+            subtotalLabel={formatMajorAmount(
+              order.subtotalAmount,
+              order.currency,
+            )}
+            shippingLabel={formatMajorAmount(
+              order.shippingAmount,
+              order.currency,
+            )}
+            totalLabel={formatMajorAmount(order.totalAmount, order.currency)}
+          />
+        ) : null}
+
         <StorefrontSiteFooter config={config} basePath={basePath} />
       </div>
     </StorefrontThemeRoot>
