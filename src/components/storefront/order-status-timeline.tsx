@@ -1,17 +1,34 @@
 "use client";
 
-import type { Order } from "@/types/cart";
-import { buildOrderTimeline } from "@/lib/order-status";
+import type { OrderShippingStatus } from "@/types/shipping";
 
-type OrderStatusTimelineProps = {
-  order: Order;
-};
+type Step = { id: string; label: string; description: string; state: string };
 
-export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
-  const steps = buildOrderTimeline(order);
+export function OrderStatusTimeline({ shipping }: { shipping: OrderShippingStatus }) {
+  const status = shipping.status;
+  const stages = [
+    { id: "created", label: "Label created", description: "Awaiting collection by the carrier." },
+    { id: "in_transit", label: "In transit", description: "The carrier has collected your parcel." },
+    { id: "delivered", label: "Delivered", description: "The carrier confirmed delivery." },
+  ];
+  const current = stages.findIndex((step) => step.id === status);
+  const steps: Step[] = current >= 0 ? stages.map((step, index) => ({
+    ...step,
+    description: index > current ? "Awaiting carrier confirmation." : step.description,
+    state: index < current ? "complete" : index === current ? "current" : "upcoming",
+  })) : [{
+    id: status || "pending",
+    label: shipping.statusLabel || "Awaiting shipment",
+    description: status === "cancelled" ? "Bob Go confirmed the shipment cancellation."
+      : status === "cancel_requested" ? "Cancellation is awaiting confirmation from Bob Go."
+      : status === "cancellation_unknown" ? "The store is checking the cancellation with Bob Go."
+      : status === "failed" ? "Contact the store for help with this shipment."
+      : "Delivery tracking will update when the carrier confirms the shipment.",
+    state: status === "cancelled" || status === "failed" ? "cancelled" : "current",
+  }];
 
   return (
-    <ol className="space-y-0">
+    <ol className="space-y-0" aria-label="Bob Go delivery progress">
       {steps.map((step, index) => {
         const isLast = index === steps.length - 1;
         const dotClass =
@@ -30,7 +47,7 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
               : "text-[color:var(--sf-accent)]";
 
         return (
-          <li key={step.id} className="flex gap-4">
+          <li key={step.id} className="flex gap-4" aria-current={step.state === "current" ? "step" : undefined}>
             <div className="flex w-5 flex-col items-center">
               <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${dotClass}`} />
               {!isLast ? (

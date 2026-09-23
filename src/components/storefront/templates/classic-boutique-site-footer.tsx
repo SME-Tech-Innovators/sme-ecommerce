@@ -1,3 +1,4 @@
+import { StorefrontOrderTrackingLink } from "@/components/storefront/storefront-order-tracking-link";
 import { StorefrontSmartLink } from "@/components/storefront/storefront-smart-link";
 import type { StorefrontConfig } from "@/types/storefront";
 
@@ -26,6 +27,7 @@ export function ClassicBoutiqueSiteFooter({
             Shop
           </p>
           <ul className="mt-4 space-y-2 font-sans text-sm">
+            <StorefrontOrderTrackingLink config={config} workspaceId={workspaceId} basePath={basePath} />
             {config.footerShopLinks.map((l) => (
               <li key={l.label}>
                 <StorefrontSmartLink

@@ -56,6 +56,7 @@ function asOrder(raw: Order): Order {
     workspaceId: String(raw.workspaceId),
     cartId: raw.cartId == null ? null : String(raw.cartId),
     orderNumber: String(raw.orderNumber ?? ""),
+    cancellationRequestStatus: raw.cancellationRequestStatus ?? null,
     customerName: String(raw.customerName ?? ""),
     customerEmail: raw.customerEmail == null ? null : String(raw.customerEmail),
     customerPhone: String(raw.customerPhone ?? ""),

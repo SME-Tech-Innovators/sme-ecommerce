@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { PaymentsSettingsPanel } from "@/components/dashboard/payments-settings-panel";
+import { ShippingSettingsPanel } from "@/components/dashboard/shipping-settings-panel";
 import { WhatsAppSettingsPanel } from "@/components/dashboard/whatsapp-settings-panel";
 
 type SettingsPanelProps = {
   workspaceId: string;
 };
 
-type SettingsTab = "payments" | "whatsapp";
+type SettingsTab = "payments" | "whatsapp" | "shipping";
 
 export function SettingsPanel({ workspaceId }: SettingsPanelProps) {
   const [tab, setTab] = useState<SettingsTab>("payments");
@@ -47,11 +48,18 @@ export function SettingsPanel({ workspaceId }: SettingsPanelProps) {
           >
             WhatsApp
           </button>
+          <button type="button" role="tab" aria-selected={tab === "shipping"}
+            onClick={() => setTab("shipping")}
+            className={`rounded-md px-4 py-2 font-sans text-sm font-semibold transition-colors ${tab === "shipping" ? "bg-white text-primary-blue shadow-sm" : "text-primary-blue/60 hover:text-primary-blue"}`}>
+            Delivery
+          </button>
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {tab === "payments" ? (
           <PaymentsSettingsPanel workspaceId={workspaceId} />
+        ) : tab === "shipping" ? (
+          <ShippingSettingsPanel workspaceId={workspaceId} />
         ) : (
           <WhatsAppSettingsPanel workspaceId={workspaceId} />
         )}

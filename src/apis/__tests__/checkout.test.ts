@@ -42,7 +42,11 @@ describe("checkout API", () => {
 
       const result = await postCheckout(STORE_SLUG, checkoutBody);
 
-      expect(result).toEqual({ ok: true, data: order });
+      expect(result).toEqual({ ok: true, data: {
+        ...order,
+        cancellationRequestStatus: null,
+        shippingAddress: { ...order.shippingAddress, line2: undefined },
+      } });
       if (result.ok) {
         expect(result.data.status).toBe("pending_payment");
         expect(result.data.paymentStatus).toBe("unpaid");
@@ -128,7 +132,11 @@ describe("checkout API", () => {
 
       const result = await getOrderConfirmation(STORE_SLUG, ORDER_ID);
 
-      expect(result).toEqual({ ok: true, data: order });
+      expect(result).toEqual({ ok: true, data: {
+        ...order,
+        cancellationRequestStatus: null,
+        shippingAddress: { ...order.shippingAddress, line2: undefined },
+      } });
       const [url, init] = fetchMock.mock.calls[0];
       expect(String(url)).toContain(
         `/public/storefronts/${STORE_SLUG}/orders/${ORDER_ID}`,

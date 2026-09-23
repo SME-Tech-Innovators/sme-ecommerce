@@ -1,3 +1,4 @@
+import { StorefrontOrderTrackingLink } from "@/components/storefront/storefront-order-tracking-link";
 import { StorefrontSmartLink } from "@/components/storefront/storefront-smart-link";
 import type { StorefrontConfig } from "@/types/storefront";
 
@@ -22,7 +23,8 @@ export function ArtisanAtelierSiteFooter({
           {config.footerBlurb}
         </p>
         <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-sans text-sm">
-          {config.footerShopLinks.map((l) => (
+          <StorefrontOrderTrackingLink config={config} workspaceId={workspaceId} basePath={basePath} />
+            {config.footerShopLinks.map((l) => (
             <li key={l.label}>
               <StorefrontSmartLink
                 link={l}

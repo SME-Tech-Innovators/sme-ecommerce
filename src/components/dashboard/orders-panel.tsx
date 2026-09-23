@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import {
-  useMerchantOrders,
-  useUpdateMerchantOrderStatus,
-} from "@/hooks/use-orders";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { OrderCancellationPanel } from "@/components/dashboard/order-cancellation-panel";
+import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
+import { useMerchantOrders } from "@/hooks/use-orders";
+import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
@@ -24,19 +23,6 @@ function formatWhen(value: string): string {
   });
 }
 
-function paymentBadgeClass(status: string): string {
-  switch (status) {
-    case "paid":
-      return "bg-emerald-50 text-emerald-800 ring-emerald-700/15";
-    case "initialized":
-      return "bg-amber-50 text-amber-900 ring-amber-700/15";
-    case "failed":
-      return "bg-red-50 text-red-800 ring-red-700/15";
-    default:
-      return "bg-blue-gray/40 text-primary-blue/70 ring-primary-blue/10";
-  }
-}
-
 function orderBadgeClass(status: OrderStatus): string {
   switch (status) {
     case "fulfilled":
@@ -52,37 +38,21 @@ function orderBadgeClass(status: OrderStatus): string {
   }
 }
 
-function nextStatusActions(
-  status: OrderStatus,
-): Array<{ status: "processing" | "fulfilled" | "cancelled"; label: string }> {
-  switch (status) {
-    case "paid":
-      return [
-        { status: "processing", label: "Mark preparing" },
-        { status: "cancelled", label: "Cancel order" },
-      ];
-    case "processing":
-      return [
-        { status: "fulfilled", label: "Mark fulfilled" },
-        { status: "cancelled", label: "Cancel order" },
-      ];
-    default:
-      return [];
-  }
+function subscribeToAuth(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
 }
 
 export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
-  const [signedIn, setSignedIn] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
+  const signedIn = useSyncExternalStore(
+    subscribeToAuth,
+    () => Boolean(getStoredAuthSession()?.accessToken),
+    () => null,
+  );
+  const authReady = signedIn !== null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSignedIn(Boolean(getStoredAuthSession()?.accessToken));
-    setAuthReady(true);
-  }, []);
-
-  const ordersQuery = useMerchantOrders(workspaceId, signedIn);
-  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
+  const ordersQuery = useMerchantOrders(workspaceId, signedIn === true);
 
   const orders = useMemo(() => {
     const list = ordersQuery.data ?? [];
@@ -95,21 +65,6 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
 
   const selected: Order | null =
     orders.find((order) => order.id === selectedId) ?? null;
-
-  async function onUpdateStatus(
-    orderId: string,
-    status: "processing" | "fulfilled" | "cancelled",
-  ) {
-    try {
-      const next = await updateStatus.mutateAsync({ orderId, status });
-      setSelectedId(next.id);
-      toast.success(`Order ${orderStatusLabel(next.status).toLowerCase()}`);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not update order.",
-      );
-    }
-  }
 
   if (!authReady || (signedIn && ordersQuery.isLoading)) {
     return (
@@ -164,7 +119,6 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                 <th className="px-5 py-3">Order</th>
                 <th className="px-5 py-3">Customer</th>
                 <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Payment</th>
                 <th className="px-5 py-3 text-right">Total</th>
               </tr>
             </thead>
@@ -182,7 +136,8 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                     onClick={() => setSelectedId(order.id)}
                   >
                     <td className="px-5 py-3 font-semibold text-primary-blue">
-                      {order.orderNumber}
+                      <button type="button" onClick={() => setSelectedId(order.id)} className="text-left underline-offset-2 hover:underline">{order.orderNumber}</button>
+                      {order.cancellationRequestStatus === "requested" ? <span className="ml-2 rounded bg-amber-100 px-2 py-1 text-xs text-amber-900">Cancellation requested</span> : null}
                       <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
                         {formatWhen(order.createdAt)}
                       </span>
@@ -195,13 +150,6 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                         className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ${orderBadgeClass(order.status)}`}
                       >
                         {orderStatusLabel(order.status)}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ${paymentBadgeClass(order.paymentStatus)}`}
-                      >
-                        {order.paymentStatus}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-primary-blue">
@@ -256,36 +204,11 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
               </p>
             </div>
 
-            {nextStatusActions(selected.status).length > 0 ? (
-              <div className="space-y-2 border border-primary-blue/10 bg-white p-3">
-                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
-                  Fulfilment
-                </p>
-                <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
-                  Update status for the customer track page. No shipping
-                  carrier yet.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {nextStatusActions(selected.status).map((action) => (
-                    <button
-                      key={action.status}
-                      type="button"
-                      disabled={updateStatus.isPending}
-                      onClick={() =>
-                        void onUpdateStatus(selected.id, action.status)
-                      }
-                      className={`px-3 py-1.5 font-sans text-xs font-semibold ${
-                        action.status === "cancelled"
-                          ? "border border-red-700/20 text-red-800 hover:bg-red-50"
-                          : "bg-primary-blue text-white hover:opacity-95"
-                      } disabled:opacity-50`}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+            <OrderCancellationPanel key={`cancellation:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
+
+            <OrderShippingPanel key={`shipping:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
+
+            <OrderReturnPanel key={`${workspaceId}:${selected.id}`} workspaceId={workspaceId} order={selected} />
 
             <ul className="divide-y divide-primary-blue/10 border border-primary-blue/10 bg-white">
               {selected.items.map((item) => (

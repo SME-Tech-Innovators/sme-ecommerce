@@ -11,6 +11,17 @@ export const PREVIEW_SHOP_CATEGORY_HREF_PREFIX = "@shop/category:";
 export const PREVIEW_CUSTOM_PAGE_HREF_PREFIX = "@page:";
 export const PREVIEW_ORDERS_TRACK_HREF = "@orders/track";
 
+/** Keep order management reachable in every storefront navigation. */
+export function withManageOrderLink(links: StorefrontLink[], basePath?: string): StorefrontLink[] {
+  const manageLink = { label: "Manage order", href: PREVIEW_ORDERS_TRACK_HREF };
+  const target = resolveStorefrontHref(manageLink, basePath);
+  if (links.some((link) => resolveStorefrontHref(link, basePath) === target)) {
+    return links.map((link) => resolveStorefrontHref(link, basePath) === target
+      ? { ...link, label: manageLink.label } : link);
+  }
+  return [...links, manageLink];
+}
+
 /** Default hero label that pairs with legacy `#` hrefs from older drafts. */
 const SHOP_COLLECTION_LABEL = "shop collection";
 
