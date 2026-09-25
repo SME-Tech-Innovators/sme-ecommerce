@@ -120,3 +120,16 @@
     cursor: not-allowed;
   }
 }
+
+/* Keep editable controls readable on phones/tablets and prevent iOS focus zoom.
+   Important overrides compact Tailwind font sizes throughout the application. */
+@media (max-width: 767px), (any-pointer: coarse) {
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]),
+  textarea,
+  select,
+  [contenteditable="true"],
+  [contenteditable="plaintext-only"],
+  [contenteditable=""] {
+    font-size: max(18px, 1em) !important;
+  }
+}

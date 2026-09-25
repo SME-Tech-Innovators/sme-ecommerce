@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeEditorialSettings } from "@/lib/storefront-editorial";
 import type { CSSProperties, ReactNode } from "react";
 import { StorefrontFavicon } from "@/components/storefront/storefront-favicon";
 import { StorefrontFontLoader } from "@/components/storefront/storefront-font-loader";
@@ -29,6 +30,7 @@ export function StorefrontThemeRoot({
   const style = {
     ...storefrontThemeCssVars(theme),
     ...storefrontFontCssVars(fonts),
+    "--sf-editorial-space": normalizeEditorialSettings(config.editorial).spacing === "compact" ? "2.5rem" : "5rem",
     fontFamily: "var(--sf-font-body)",
   } as CSSProperties;
 

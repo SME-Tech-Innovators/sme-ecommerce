@@ -7,7 +7,7 @@ import {
   shopProductBadges,
 } from "@/components/storefront/storefront-product-card";
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip";
-import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
+import { StorefrontSiteFooter } from "@/components/storefront/storefront-chrome";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { useProducts } from "@/hooks/use-products";
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
@@ -47,6 +47,8 @@ export function StorefrontShopCollectionPreview({
   const [committedQ, setCommittedQ] = useState("");
 
   useEffect(() => {
+    // Reset preview-only filters when the editor switches collection pages.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCategory("");
     setSearchDraft("");
     setCommittedQ("");
@@ -197,8 +199,9 @@ export function StorefrontShopCollectionPreview({
                     compareAtPriceLabel={p.compareAtPriceLabel}
                     imageUrl={p.imageUrl}
                     category={p.category}
+                    aspect={config.templateId === "chapter-bookshop" ? "portrait" : "square"}
                     variant={
-                      isCatalogueTemplate(config.templateId)
+                      config.templateId === "chapter-bookshop" ? "bookshop" : isCatalogueTemplate(config.templateId)
                         ? "catalogue"
                         : "default"
                     }

@@ -1,3 +1,4 @@
+import { normalizeEditorialSettings } from "@/lib/storefront-editorial";
 import { getStorefrontConfigFallback } from "@/lib/storefront-config-fallback";
 import {
   defaultCollectionPages,
@@ -757,6 +758,7 @@ export function upgradeStorefrontConfig(raw: StorefrontConfig): StorefrontConfig
     heroSubheading: String(legacy.heroSubheading ?? seed.heroSubheading),
     whatsappNumber: String(legacy.whatsappNumber ?? seed.whatsappNumber),
     accentColor,
+    editorial: legacy.templateId === "maison-editorial" ? normalizeEditorialSettings(legacy.editorial) : undefined,
     templateId: (legacy.templateId ||
       seed.templateId) as StorefrontTemplateId,
     collectionPages: mergeCollectionPages(

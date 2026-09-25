@@ -16,7 +16,7 @@ type StorefrontProductCardProps = {
   /** Aspect ratio of the media frame. */
   aspect?: "square" | "portrait";
   /** `catalogue` = denser Minimal Catalogue look. */
-  variant?: "default" | "catalogue";
+  variant?: "default" | "catalogue" | "bookshop";
   showUploadHint?: boolean;
   ctaLabel?: string;
 };
@@ -57,6 +57,7 @@ export function StorefrontProductCard({
 }: StorefrontProductCardProps) {
   const aspectClass =
     aspect === "portrait" ? "aspect-[3/4]" : "aspect-square";
+  const isBookshop = variant === "bookshop";
   const isCatalogue = variant === "catalogue";
 
   const resolvedBadges: string[] = [];
@@ -84,7 +85,7 @@ export function StorefrontProductCard({
           <img
             src={imageUrl}
             alt=""
-            className={`h-full w-full object-cover ${
+            className={`h-full w-full ${isBookshop ? "object-contain p-3 drop-shadow-lg @md/storefront:p-6" : "object-cover"} ${
               isCatalogue
                 ? soldOut
                   ? "opacity-55"
