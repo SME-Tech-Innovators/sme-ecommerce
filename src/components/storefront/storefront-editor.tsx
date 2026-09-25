@@ -1,5 +1,7 @@
 "use client";
 
+import { MaisonEditorialSettings } from "@/components/storefront/maison-editorial-settings";
+
 import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -1799,6 +1801,7 @@ export function StorefrontEditor({
     case "appearance":
       body = (
         <div className="space-y-6">
+          {config.templateId === "maison-editorial" && <MaisonEditorialSettings value={config.editorial} onChange={editorial => patch({ editorial })} />}
           <p className="font-sans text-xs leading-relaxed text-muted-foreground">
             Choose colours and typography for your storefront. Changes show in
             the preview immediately.

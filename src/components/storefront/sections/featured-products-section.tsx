@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ClassicBoutiqueSmartLink as SmartLink } from "@/components/storefront/templates/classic-boutique-smart-link";
 import { storefrontButtonClassName } from "@/components/storefront/storefront-button";
 import { StorefrontProductCard } from "@/components/storefront/storefront-product-card";
@@ -23,7 +23,8 @@ type FeaturedProductsSectionProps = {
   section: StorefrontFeaturedProductsSection;
   workspaceId?: string;
   basePath?: string;
-  variant?: "default" | "catalogue";
+  variant?: "default" | "catalogue" | "editorial" | "bookshop";
+  imageRatio?: "portrait" | "square";
 };
 
 /** Renders active catalogue products from the API (not storefront config placeholders). */
@@ -32,16 +33,15 @@ export function FeaturedProductsSection({
   workspaceId,
   basePath,
   variant = "default",
+  imageRatio = "portrait",
 }: FeaturedProductsSectionProps) {
   const storeSlug = storeSlugFromBasePath(basePath);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken] = useState(() => getStoredAuthSession()?.accessToken ?? null);
   const usePublic = Boolean(storeSlug);
   const limit = resolveStorefrontProductSectionLimit(section.limit);
+  const isBookshop = variant === "bookshop";
+  const isEditorial = variant === "editorial";
   const isCatalogue = variant === "catalogue";
-
-  useEffect(() => {
-    setAccessToken(getStoredAuthSession()?.accessToken ?? null);
-  }, []);
 
   const listParams = { page: 0, limit: limit };
 
@@ -64,7 +64,7 @@ export function FeaturedProductsSection({
   return (
     <section
       className={
-        isCatalogue
+        isEditorial ? "maison-products mx-auto px-5 py-[var(--sf-editorial-space)] @md/storefront:px-10" : isCatalogue
           ? "mx-auto max-w-[100%] border-b border-[color:var(--sf-accent)]/10 px-4 py-12 @sm/storefront:px-8 @sm/storefront:py-14"
           : "mx-auto max-w-[100%] px-4 py-14 sm:px-8 sm:py-20"
       }
@@ -86,7 +86,7 @@ export function FeaturedProductsSection({
           <h2
             id={`${section.id}-heading`}
             className={
-              isCatalogue
+              isEditorial ? "font-serif text-[clamp(2rem,5cqi,4.5rem)] leading-none tracking-[-0.04em] text-[color:var(--sf-accent)]" : isCatalogue
                 ? "mt-2 font-sans text-2xl font-semibold tracking-tight text-[color:var(--sf-accent)] @sm/storefront:text-3xl"
                 : "font-serif text-2xl font-light text-[color:var(--sf-accent)] @sm/storefront:text-3xl"
             }
@@ -127,7 +127,7 @@ export function FeaturedProductsSection({
       ) : (
         <div
           className={
-            isCatalogue
+            isEditorial ? "grid grid-cols-2 gap-x-5 gap-y-10 @md/storefront:gap-x-16 @md/storefront:[&>div:nth-child(even)]:pt-20" : isCatalogue
               ? "grid grid-cols-2 gap-px bg-[color:var(--sf-accent)]/10 @md/storefront:grid-cols-3 @xl/storefront:grid-cols-4"
               : "grid grid-cols-2 gap-4 @md/storefront:grid-cols-3 @md/storefront:gap-6 @xl/storefront:grid-cols-4 @xl/storefront:gap-8"
           }
@@ -152,7 +152,8 @@ export function FeaturedProductsSection({
                   compareAtPriceLabel={p.compareAtPriceLabel}
                   imageUrl={p.imageUrl}
                   href={productHref}
-                  variant={isCatalogue ? "catalogue" : "default"}
+                  aspect={isBookshop ? "portrait" : isEditorial ? imageRatio : "square"}
+                  variant={isBookshop ? "bookshop" : isCatalogue ? "catalogue" : "default"}
                   badges={(() => {
                     const list: Array<"Sold out" | "Sale"> = [];
                     if (p.inStock === false) list.push("Sold out");

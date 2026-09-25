@@ -1,3 +1,5 @@
+import { ChapterBookshopStorefront } from "@/components/storefront/templates/chapter-bookshop-storefront";
+import { MaisonEditorialStorefront } from "@/components/storefront/templates/maison-editorial-storefront";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { ArtisanAtelierStorefront } from "@/components/storefront/templates/artisan-atelier-storefront";
 import { ClassicBoutiqueStorefront } from "@/components/storefront/templates/classic-boutique-storefront";
@@ -45,6 +47,12 @@ export function StorefrontTemplateView({
 
   let body;
   switch (config.templateId) {
+    case "chapter-bookshop":
+      body = <ChapterBookshopStorefront {...shared} />;
+      break;
+    case "maison-editorial":
+      body = <MaisonEditorialStorefront {...shared} />;
+      break;
     case "minimal-catalogue":
       body = <MinimalCatalogueStorefront {...shared} />;
       break;

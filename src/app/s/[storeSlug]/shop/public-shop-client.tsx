@@ -229,8 +229,9 @@ function PublicShopBody({ storeSlug }: PublicShopClientProps) {
                     compareAtPriceLabel={p.compareAtPriceLabel}
                     imageUrl={p.imageUrl}
                     category={p.category}
+                    aspect={config.templateId === "chapter-bookshop" ? "portrait" : "square"}
                     variant={
-                      isCatalogueTemplate(config.templateId)
+                      config.templateId === "chapter-bookshop" ? "bookshop" : isCatalogueTemplate(config.templateId)
                         ? "catalogue"
                         : "default"
                     }

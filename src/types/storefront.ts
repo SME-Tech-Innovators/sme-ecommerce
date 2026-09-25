@@ -5,7 +5,9 @@ export type { StorefrontFontPairId } from "@/lib/storefront-fonts";
 export type StorefrontTemplateId =
   | "classic-boutique"
   | "minimal-catalogue"
-  | "artisan-atelier";
+  | "artisan-atelier"
+  | "maison-editorial"
+  | "chapter-bookshop";
 
 /** Visual preset (surfaces + default accent). See `src/lib/storefront-themes.ts`. */
 export type StorefrontThemeId =
@@ -266,7 +268,15 @@ export type StorefrontShopChromeConfig = {
   tabSale: boolean;
 };
 
+export type StorefrontEditorialSettings = {
+  heroLayout: "split" | "cover";
+  spacing: "airy" | "compact";
+  imageRatio: "portrait" | "square";
+  editionLabel: string;
+};
+
 export type StorefrontConfig = {
+  editorial?: StorefrontEditorialSettings;
   templateId: StorefrontTemplateId;
   themeId: StorefrontThemeId;
   /** Bump when schema changes (migration in `upgradeStorefrontConfig`). */

@@ -1,5 +1,10 @@
 "use client";
 
+import { ChapterBookshopSection } from "@/components/storefront/templates/chapter-bookshop-sections";
+
+import { MaisonEditorialSection } from "@/components/storefront/templates/maison-editorial-sections";
+import { normalizeEditorialSettings } from "@/lib/storefront-editorial";
+
 import type { PointerEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -149,6 +154,14 @@ export function StorefrontSectionRenderer({
   const isCatalogue = isCatalogueTemplate(config.templateId);
   const isAtelier = isArtisanAtelierTemplate(config.templateId);
 
+  if (config.templateId === "chapter-bookshop" && ["hero", "textImage", "promoBanner", "features", "contactCta"].includes(section.type)) {
+    return <ChapterBookshopSection section={section} config={config} workspaceId={workspaceId} basePath={basePath} />;
+  }
+
+  if (config.templateId === "maison-editorial" && ["hero", "textImage", "promoBanner", "features", "contactCta"].includes(section.type)) {
+    return <MaisonEditorialSection section={section} config={config} workspaceId={workspaceId} basePath={basePath} />;
+  }
+
   switch (section.type) {
     case "hero": {
       if (isAtelier) {
@@ -230,7 +243,8 @@ export function StorefrontSectionRenderer({
           section={section}
           workspaceId={workspaceId}
           basePath={basePath}
-          variant={isCatalogue ? "catalogue" : "default"}
+          variant={config.templateId === "chapter-bookshop" ? "bookshop" : config.templateId === "maison-editorial" ? "editorial" : isCatalogue ? "catalogue" : "default"}
+          imageRatio={normalizeEditorialSettings(config.editorial).imageRatio}
         />
       );
     case "newArrivals":

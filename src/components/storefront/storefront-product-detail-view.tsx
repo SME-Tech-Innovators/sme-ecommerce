@@ -132,7 +132,7 @@ export function StorefrontProductDetailView({
                 <img
                   src={mainSrc}
                   alt=""
-                  className="h-full w-full object-cover"
+                  className={config.templateId === "chapter-bookshop" ? "h-full w-full object-contain p-3" : "h-full w-full object-cover"}
                 />
               ) : (
                 <StorefrontImagePlaceholder label={product.title} />
@@ -153,7 +153,7 @@ export function StorefrontProductDetailView({
                       aria-label={`Show image ${i + 1}`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt="" className="h-full w-full object-cover" />
+                      <img src={src} alt="" className={config.templateId === "chapter-bookshop" ? "h-full w-full object-contain p-3" : "h-full w-full object-cover"} />
                     </button>
                   </li>
                 ))}

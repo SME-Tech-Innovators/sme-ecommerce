@@ -1,3 +1,5 @@
+import { ChapterBookshopSiteHeader, ChapterBookshopSiteFooter } from "@/components/storefront/templates/chapter-bookshop-chrome";
+import { MaisonEditorialSiteHeader, MaisonEditorialSiteFooter } from "@/components/storefront/templates/maison-editorial-chrome";
 import { ArtisanAtelierSiteFooter } from "@/components/storefront/templates/artisan-atelier-site-footer";
 import { ArtisanAtelierSiteHeader } from "@/components/storefront/templates/artisan-atelier-site-header";
 import { ClassicBoutiqueSiteFooter } from "@/components/storefront/templates/classic-boutique-site-footer";
@@ -16,6 +18,8 @@ export type StorefrontChromeProps = {
 function resolveTemplateId(config: StorefrontConfig): StorefrontTemplateId {
   const id = config.templateId;
   if (
+    id === "chapter-bookshop" ||
+    id === "maison-editorial" ||
     id === "minimal-catalogue" ||
     id === "artisan-atelier" ||
     id === "classic-boutique"
@@ -30,6 +34,10 @@ export function StorefrontSiteHeader(props: StorefrontChromeProps) {
   switch (resolveTemplateId(props.config)) {
     case "minimal-catalogue":
       return <MinimalCatalogueSiteHeader {...props} />;
+    case "maison-editorial":
+      return <MaisonEditorialSiteHeader {...props} />;
+    case "chapter-bookshop":
+      return <ChapterBookshopSiteHeader {...props} />;
     case "artisan-atelier":
       return <ArtisanAtelierSiteHeader {...props} />;
     default:
@@ -44,6 +52,10 @@ export function StorefrontSiteFooter(
   switch (resolveTemplateId(props.config)) {
     case "minimal-catalogue":
       return <MinimalCatalogueSiteFooter {...props} />;
+    case "maison-editorial":
+      return <MaisonEditorialSiteFooter {...props} />;
+    case "chapter-bookshop":
+      return <ChapterBookshopSiteFooter {...props} />;
     case "artisan-atelier":
       return <ArtisanAtelierSiteFooter {...props} />;
     default:
