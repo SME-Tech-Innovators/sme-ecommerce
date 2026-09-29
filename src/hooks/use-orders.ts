@@ -7,7 +7,10 @@ import {
   updateMerchantOrderStatus,
   type UpdateMerchantOrderStatusBody,
 } from "@/apis/orders";
+import { bookUberDirectDelivery } from "@/apis/delivery";
+import { refreshUberDirectDeliveryStatus } from "@/apis/delivery";
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
+import type { Order } from "@/types/cart";
 
 export const merchantOrderKeys = {
   list: (workspaceId: string) => ["merchant-orders", workspaceId] as const,
@@ -83,6 +86,63 @@ export function useUpdateMerchantOrderStatus(workspaceId: string) {
       void queryClient.invalidateQueries({
         queryKey: merchantOrderKeys.list(workspaceId),
       });
+    },
+  });
+}
+
+export function useBookUberDirectDelivery(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { orderId: string; quoteId: string }) => {
+      const result = await bookUberDirectDelivery(
+        workspaceId,
+        input.orderId,
+        input.quoteId,
+        requireAccessToken(),
+      );
+      if (!result.ok) throw new Error(result.errorMessage);
+      return result.data;
+    },
+    onSuccess: (delivery, input) => {
+      queryClient.setQueriesData<Order[]>(
+        { queryKey: merchantOrderKeys.list(workspaceId) },
+        (orders) =>
+          orders?.map((order) =>
+            order.id === input.orderId ? { ...order, delivery } : order,
+          ),
+      );
+      queryClient.setQueryData<Order>(
+        merchantOrderKeys.detail(workspaceId, input.orderId),
+        (order) => (order ? { ...order, delivery } : order),
+      );
+    },
+  });
+}
+
+export function useRefreshUberDirectDeliveryStatus(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { orderId: string }) => {
+      const result = await refreshUberDirectDeliveryStatus(
+        workspaceId,
+        input.orderId,
+        requireAccessToken(),
+      );
+      if (!result.ok) throw new Error(result.errorMessage);
+      return result.data;
+    },
+    onSuccess: (delivery, input) => {
+      queryClient.setQueriesData<Order[]>(
+        { queryKey: merchantOrderKeys.list(workspaceId) },
+        (orders) =>
+          orders?.map((order) =>
+            order.id === input.orderId ? { ...order, delivery } : order,
+          ),
+      );
+      queryClient.setQueryData<Order>(
+        merchantOrderKeys.detail(workspaceId, input.orderId),
+        (order) => (order ? { ...order, delivery } : order),
+      );
     },
   });
 }

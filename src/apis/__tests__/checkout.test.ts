@@ -64,6 +64,25 @@ describe("checkout API", () => {
       expect(init?.body).toBe(JSON.stringify(checkoutBody));
     });
 
+    it("POSTs the selected Uber Direct method and quote id with checkout", async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse(successEnvelope(mockOrder())),
+      );
+      const body: CheckoutBody = {
+        ...checkoutBody,
+        deliveryMethod: "UBER_DIRECT",
+        deliveryQuoteId: "quote_xyz789",
+      };
+
+      await postCheckout(STORE_SLUG, body);
+
+      const init = fetchMock.mock.calls[0][1];
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        deliveryMethod: "UBER_DIRECT",
+        deliveryQuoteId: "quote_xyz789",
+      });
+    });
+
     it("snapshots order item title, sku, and price from the response", async () => {
       const order = mockOrder();
       fetchMock.mockResolvedValueOnce(jsonResponse(successEnvelope(order)));
