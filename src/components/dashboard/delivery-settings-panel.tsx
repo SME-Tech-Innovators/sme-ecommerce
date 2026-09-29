@@ -15,6 +15,25 @@ import type {
 
 type DeliverySettingsPanelProps = {
   workspaceId: string;
+  demoMode?: boolean;
+  onDemoSettingsChange?: (settings: DeliverySettings) => void;
+};
+
+const DEMO_DELIVERY_SETTINGS: DeliverySettings = {
+  workspaceId: "demo-workspace",
+  uberDirectEnabled: true,
+  uberDirectAvailable: true,
+  pickupAddressLine1: "12 Main Street",
+  pickupAddressLine2: "Unit 4",
+  pickupCity: "Cape Town",
+  pickupProvince: "Western Cape",
+  pickupPostalCode: "8001",
+  pickupCountry: "ZA",
+  pickupLatitude: -33.9249,
+  pickupLongitude: 18.4241,
+  pickupContactName: "Store Manager",
+  pickupContactPhone: "+27821234567",
+  updatedAt: "Demo preview",
 };
 
 const fieldClass =
@@ -47,42 +66,59 @@ function statusClass(active: boolean): string {
 
 export function DeliverySettingsPanel({
   workspaceId,
+  demoMode = false,
+  onDemoSettingsChange,
 }: DeliverySettingsPanelProps) {
   const [signedIn, setSignedIn] = useState(false);
   const [authReady, setAuthReady] = useState(false);
-  const [form, setForm] = useState<UpdateDeliverySettingsBody>({
-    uberDirectEnabled: false,
-    pickupAddressLine1: "",
-    pickupAddressLine2: "",
-    pickupCity: "",
-    pickupProvince: "",
-    pickupPostalCode: "",
-    pickupCountry: "ZA",
-    pickupLatitude: null,
-    pickupLongitude: null,
-    pickupContactName: "",
-    pickupContactPhone: "",
-  });
+  const [demoSettings, setDemoSettings] = useState(DEMO_DELIVERY_SETTINGS);
+  const [form, setForm] = useState<UpdateDeliverySettingsBody>(() =>
+    settingsToForm(
+      demoMode
+        ? DEMO_DELIVERY_SETTINGS
+        : {
+            ...DEMO_DELIVERY_SETTINGS,
+            uberDirectEnabled: false,
+            uberDirectAvailable: false,
+            pickupAddressLine1: "",
+            pickupAddressLine2: "",
+            pickupCity: "",
+            pickupProvince: "",
+            pickupPostalCode: "",
+            pickupCountry: "ZA",
+            pickupLatitude: null,
+            pickupLongitude: null,
+            pickupContactName: "",
+            pickupContactPhone: "",
+          },
+    ),
+  );
 
   useEffect(() => {
+    if (demoMode) return;
     const timer = window.setTimeout(() => {
       setSignedIn(Boolean(getStoredAuthSession()?.accessToken));
       setAuthReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [demoMode]);
 
-  const settingsQuery = useDeliverySettings(workspaceId, signedIn);
+  const settingsQuery = useDeliverySettings(
+    workspaceId,
+    signedIn && !demoMode,
+  );
   const saveMutation = useUpdateDeliverySettings(workspaceId);
 
   useEffect(() => {
+    if (demoMode) return;
     if (!settingsQuery.data) return;
     const nextForm = settingsToForm(settingsQuery.data);
     const timer = window.setTimeout(() => setForm(nextForm), 0);
     return () => window.clearTimeout(timer);
-  }, [settingsQuery.data]);
+  }, [demoMode, settingsQuery.data]);
 
-  const isActive = settingsQuery.data?.uberDirectAvailable === true;
+  const currentSettings = demoMode ? demoSettings : settingsQuery.data;
+  const isActive = currentSettings?.uberDirectAvailable === true;
 
   function updateField<K extends keyof UpdateDeliverySettingsBody>(
     key: K,
@@ -103,20 +139,37 @@ export function DeliverySettingsPanel({
 
   async function onSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const body: UpdateDeliverySettingsBody = {
+      ...form,
+      pickupAddressLine1: form.pickupAddressLine1.trim(),
+      pickupAddressLine2: form.pickupAddressLine2?.trim() ?? "",
+      pickupCity: form.pickupCity.trim(),
+      pickupProvince: form.pickupProvince.trim(),
+      pickupPostalCode: form.pickupPostalCode.trim(),
+      pickupCountry: form.pickupCountry.trim().toUpperCase(),
+      pickupContactName: form.pickupContactName.trim(),
+      pickupContactPhone: form.pickupContactPhone.trim(),
+    };
+
+    if (demoMode) {
+      const updated: DeliverySettings = {
+        ...demoSettings,
+        ...body,
+        uberDirectAvailable: body.uberDirectEnabled,
+        updatedAt: "Demo preview",
+      };
+      setDemoSettings(updated);
+      setForm(settingsToForm(updated));
+      onDemoSettingsChange?.(updated);
+      toast.message("Demo mode", {
+        description: "Settings changed locally only; nothing was sent to a backend.",
+      });
+      return;
+    }
     if (saveMutation.isPending) return;
 
     try {
-      await saveMutation.mutateAsync({
-        ...form,
-        pickupAddressLine1: form.pickupAddressLine1.trim(),
-        pickupAddressLine2: form.pickupAddressLine2?.trim() ?? "",
-        pickupCity: form.pickupCity.trim(),
-        pickupProvince: form.pickupProvince.trim(),
-        pickupPostalCode: form.pickupPostalCode.trim(),
-        pickupCountry: form.pickupCountry.trim().toUpperCase(),
-        pickupContactName: form.pickupContactName.trim(),
-        pickupContactPhone: form.pickupContactPhone.trim(),
-      });
+      await saveMutation.mutateAsync(body);
       toast.success("Delivery settings saved");
     } catch (error) {
       toast.error(
@@ -127,7 +180,10 @@ export function DeliverySettingsPanel({
     }
   }
 
-  if (!authReady || (signedIn && settingsQuery.isLoading)) {
+  if (
+    !demoMode &&
+    (!authReady || (signedIn && settingsQuery.isLoading))
+  ) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
         Loading delivery settings…
@@ -135,7 +191,7 @@ export function DeliverySettingsPanel({
     );
   }
 
-  if (!signedIn) {
+  if (!demoMode && !signedIn) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
         <h2 className="font-serif text-2xl font-light text-primary-blue">
@@ -148,7 +204,7 @@ export function DeliverySettingsPanel({
     );
   }
 
-  if (settingsQuery.isError) {
+  if (!demoMode && settingsQuery.isError) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
         <h2 className="font-serif text-2xl font-light text-primary-blue">
@@ -171,30 +227,37 @@ export function DeliverySettingsPanel({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-6 sm:px-8">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="mx-auto w-full max-w-2xl space-y-6 px-6 py-8">
+        <section className="space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <h2 className="font-serif text-2xl font-light text-primary-blue">
-              Uber Direct
+              Delivery (Uber Direct)
             </h2>
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 font-sans text-[10px] font-bold uppercase tracking-wide ring-1 ${statusClass(isActive)}`}
+              aria-live="polite"
+            >
+              Status: {isActive ? "Active" : "Inactive"}
+            </span>
           </div>
-          <span
-            className={`inline-flex rounded-full px-2.5 py-1 font-sans text-[10px] font-bold uppercase tracking-wide ring-1 ${statusClass(isActive)}`}
-            aria-live="polite"
-          >
-            Status: {isActive ? "Active" : "Inactive"}
-          </span>
-        </div>
+          <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+            Enable Uber Direct quotes at checkout and set the address and contact
+            details couriers use for pickup. Uber credentials stay on the backend.
+          </p>
+        </section>
+
+        {demoMode ? (
+          <p className="border border-amber-700/20 bg-amber-50 px-4 py-3 font-sans text-xs text-amber-900" role="status">
+            Demo preview. Changes stay in this page and are not saved to a backend.
+          </p>
+        ) : null}
 
         <form
           onSubmit={(event) => void onSave(event)}
-          className="space-y-5 border border-primary-blue/10 bg-white p-5 shadow-sm"
+          className="space-y-5 rounded-xl border border-primary-blue/10 bg-white p-5"
         >
           <section className="space-y-4">
-            <h3 className="font-sans text-sm font-bold text-primary-blue">
-              Delivery availability
-            </h3>
             <label className="flex items-center gap-3 font-sans text-sm font-medium text-primary-blue">
               <Checkbox
                 checked={form.uberDirectEnabled}
@@ -208,10 +271,15 @@ export function DeliverySettingsPanel({
           </section>
 
           <section className="space-y-4 border-t border-primary-blue/10 pt-5">
-            <h3 className="font-sans text-sm font-bold text-primary-blue">
-              Pickup Address
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h3 className="font-sans text-sm font-bold text-primary-blue">
+                Pickup address
+              </h3>
+              <p className="mt-1 font-sans text-xs text-muted-foreground">
+                Couriers collect orders from this address.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className={`${labelClass} sm:col-span-2`}>
                 Address Line 1
                 <input
@@ -286,9 +354,9 @@ export function DeliverySettingsPanel({
 
           <section className="space-y-4 border-t border-primary-blue/10 pt-5">
             <h3 className="font-sans text-sm font-bold text-primary-blue">
-              Pickup Contact
+              Pickup contact
             </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className={labelClass}>
                 Name
                 <input
@@ -319,9 +387,9 @@ export function DeliverySettingsPanel({
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="bg-primary-blue px-4 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-primary-blue/90 disabled:opacity-50"
+              className="bg-primary-blue px-4 py-2.5 font-sans text-sm font-semibold text-white hover:bg-primary-blue/90 disabled:opacity-50"
             >
-              {saveMutation.isPending ? "Saving…" : "Save Delivery Settings"}
+              {saveMutation.isPending ? "Saving…" : "Save delivery settings"}
             </button>
           </div>
         </form>
