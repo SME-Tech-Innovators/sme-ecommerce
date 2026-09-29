@@ -116,12 +116,9 @@ export type CheckoutBody = {
     postalCode: string;
     country: string;
   };
-<<<<<<< Updated upstream
   shippingSelection?: CheckoutShippingSelection;
-=======
   deliveryMethod?: "UBER_DIRECT";
   deliveryQuoteId?: string;
->>>>>>> Stashed changes
 };
 
 export type CartResult = { ok: true; data: Cart } | ParsedApiFailure;
