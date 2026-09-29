@@ -1,10 +1,23 @@
 "use client";
 
+<<<<<<< Updated upstream
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { OrderCancellationPanel } from "@/components/dashboard/order-cancellation-panel";
 import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
 import { useMerchantOrders } from "@/hooks/use-orders";
 import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
+=======
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Truck } from "lucide-react";
+import { toast } from "sonner";
+import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
+import {
+  useBookUberDirectDelivery,
+  useMerchantOrders,
+  useRefreshUberDirectDeliveryStatus,
+  useUpdateMerchantOrderStatus,
+} from "@/hooks/use-orders";
+>>>>>>> Stashed changes
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
@@ -51,8 +64,25 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   );
   const authReady = signedIn !== null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const bookingLocks = useRef(new Set<string>());
 
+<<<<<<< Updated upstream
   const ordersQuery = useMerchantOrders(workspaceId, signedIn === true);
+=======
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSignedIn(Boolean(getStoredAuthSession()?.accessToken));
+      setAuthReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const ordersQuery = useMerchantOrders(workspaceId, signedIn);
+  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
+  const bookDelivery = useBookUberDirectDelivery(workspaceId);
+  const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
+>>>>>>> Stashed changes
 
   const orders = useMemo(() => {
     const list = ordersQuery.data ?? [];
@@ -65,7 +95,112 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
 
   const selected: Order | null =
     orders.find((order) => order.id === selectedId) ?? null;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const selectedIsPaid = selected?.paymentStatus === "paid";
+  const selectedIsUberDirect =
+    selected?.deliveryMethod?.toUpperCase() === "UBER_DIRECT" ||
+    Boolean(selected?.delivery);
+  const selectedQuoteId = selected?.deliveryQuoteId?.trim() ?? "";
+  const quoteExpiresAt = selected?.deliveryQuoteExpiresAt
+    ? Date.parse(selected.deliveryQuoteExpiresAt)
+    : null;
+  const selectedQuoteExpired =
+    quoteExpiresAt !== null &&
+    (!Number.isFinite(quoteExpiresAt) ||
+      (currentTime > 0 && quoteExpiresAt <= currentTime));
+  useEffect(() => {
+    if (quoteExpiresAt === null || !Number.isFinite(quoteExpiresAt)) return;
+    const delay = Math.max(
+      0,
+      Math.min(quoteExpiresAt - currentTime, 2_147_000_000),
+    );
+    const timer = window.setTimeout(() => setCurrentTime(Date.now()), delay);
+    return () => window.clearTimeout(timer);
+  }, [currentTime, quoteExpiresAt]);
+  const showDeliverySection = Boolean(
+    selected &&
+      selectedIsPaid &&
+      selectedIsUberDirect &&
+      (selectedQuoteId || selected.delivery),
+  );
+  const canBookDelivery = Boolean(
+    selected &&
+      selectedIsPaid &&
+      selectedIsUberDirect &&
+      selectedQuoteId &&
+      !selectedQuoteExpired &&
+        !selected.delivery,
+  );
 
+<<<<<<< Updated upstream
+=======
+  async function onUpdateStatus(
+    orderId: string,
+    status: "processing" | "fulfilled" | "cancelled",
+  ) {
+    try {
+      const next = await updateStatus.mutateAsync({ orderId, status });
+      setSelectedId(next.id);
+      toast.success(`Order ${orderStatusLabel(next.status).toLowerCase()}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not update order.",
+      );
+    }
+  }
+
+  async function onBookDelivery(order: Order) {
+    const quoteId = order.deliveryQuoteId?.trim();
+    if (
+      !quoteId ||
+      order.delivery ||
+      order.paymentStatus !== "paid" ||
+      order.deliveryMethod?.toUpperCase() !== "UBER_DIRECT"
+    ) {
+      return;
+    }
+    if (order.deliveryQuoteExpiresAt) {
+      const expiresAt = Date.parse(order.deliveryQuoteExpiresAt);
+      if (
+        !Number.isFinite(expiresAt) ||
+        (currentTime > 0 && expiresAt <= currentTime)
+      ) {
+        toast.error("This delivery quote has expired.");
+        return;
+      }
+    }
+    if (bookingLocks.current.has(order.id)) return;
+
+    bookingLocks.current.add(order.id);
+    try {
+      await bookDelivery.mutateAsync({ orderId: order.id, quoteId });
+      toast.success("Uber Direct delivery booked");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not book delivery.",
+      );
+    } finally {
+      bookingLocks.current.delete(order.id);
+    }
+  }
+
+  async function onRefreshDelivery(orderId: string) {
+    try {
+      await refreshDelivery.mutateAsync({ orderId });
+      toast.success("Delivery status updated");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not refresh delivery status.",
+      );
+    }
+  }
+
+>>>>>>> Stashed changes
   if (!authReady || (signedIn && ordersQuery.isLoading)) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
@@ -204,11 +339,102 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
               </p>
             </div>
 
+<<<<<<< Updated upstream
             <OrderCancellationPanel key={`cancellation:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
 
             <OrderShippingPanel key={`shipping:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
 
             <OrderReturnPanel key={`${workspaceId}:${selected.id}`} workspaceId={workspaceId} order={selected} />
+=======
+            {showDeliverySection ? (
+              <section className="space-y-3 border border-primary-blue/10 bg-white p-3">
+                {selected.delivery ? (
+                  <DeliveryTracking
+                    delivery={selected.delivery}
+                    variant="dashboard"
+                    feeLabel={formatMinorAmount(
+                      selected.shippingAmount,
+                      selected.currency,
+                    )}
+                    estimatedDeliveryTime={
+                      selected.deliveryEstimatedDeliveryTime
+                    }
+                    onRefresh={() => void onRefreshDelivery(selected.id)}
+                    isRefreshing={refreshDelivery.isPending}
+                    refreshError={
+                      refreshDelivery.variables?.orderId === selected.id &&
+                      refreshDelivery.error instanceof Error
+                        ? refreshDelivery.error.message
+                        : null
+                    }
+                  />
+                ) : canBookDelivery ? (
+                  <button
+                    type="button"
+                    disabled={bookDelivery.isPending}
+                    onClick={() => void onBookDelivery(selected)}
+                    className="inline-flex items-center gap-2 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white hover:bg-primary-blue/90 disabled:opacity-50"
+                  >
+                    <Truck aria-hidden className="size-4" />
+                    {bookDelivery.isPending
+                      ? "Booking delivery…"
+                      : "Book Uber Courier"}
+                  </button>
+                ) : selectedQuoteExpired ? (
+                  <div>
+                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
+                      Delivery · Uber Direct
+                    </p>
+                    <p className="mt-1 font-sans text-xs text-red-700" role="alert">
+                      This delivery quote has expired.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
+                      Delivery · Uber Direct
+                    </p>
+                    <p className="mt-1 font-sans text-xs text-muted-foreground">
+                      {formatMinorAmount(selected.shippingAmount, selected.currency)}
+                      {selected.deliveryEstimatedDeliveryTime
+                        ? ` · ${selected.deliveryEstimatedDeliveryTime}`
+                        : null}
+                    </p>
+                  </div>
+                )}
+              </section>
+            ) : null}
+
+            {nextStatusActions(selected.status).length > 0 ? (
+              <div className="space-y-2 border border-primary-blue/10 bg-white p-3">
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
+                  Fulfilment
+                </p>
+                <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
+                  Update status for the customer order page.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {nextStatusActions(selected.status).map((action) => (
+                    <button
+                      key={action.status}
+                      type="button"
+                      disabled={updateStatus.isPending}
+                      onClick={() =>
+                        void onUpdateStatus(selected.id, action.status)
+                      }
+                      className={`px-3 py-1.5 font-sans text-xs font-semibold ${
+                        action.status === "cancelled"
+                          ? "border border-red-700/20 text-red-800 hover:bg-red-50"
+                          : "bg-primary-blue text-white hover:opacity-95"
+                      } disabled:opacity-50`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+>>>>>>> Stashed changes
 
             <ul className="divide-y divide-primary-blue/10 border border-primary-blue/10 bg-white">
               {selected.items.map((item) => (
