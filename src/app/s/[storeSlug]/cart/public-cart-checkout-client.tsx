@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-<<<<<<< Updated upstream
 import {
   type FormEvent,
   useCallback,
@@ -10,9 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-=======
-import { type FormEvent, useEffect, useState } from "react";
->>>>>>> Stashed changes
 import { toast } from "sonner";
 import { getAppOrigin } from "@/apis/config";
 import { postShippingQuote } from "@/apis/shipping";
@@ -25,7 +21,6 @@ import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-ro
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import { useCheckout } from "@/hooks/use-checkout";
-import { useCustomerDeliveryOptions } from "@/hooks/use-delivery-options";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
 import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
 import {
@@ -40,16 +35,8 @@ import {
   savePaystackReturnPath,
 } from "@/lib/paystack-return";
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
-<<<<<<< Updated upstream
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
-=======
-import { formatMajorAmount, formatMinorAmount } from "@/lib/format-money";
-import type {
-  CustomerDeliveryOption,
-  CustomerDeliveryOptionsInput,
-} from "@/types/delivery";
->>>>>>> Stashed changes
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
@@ -57,27 +44,12 @@ type PublicCartCheckoutClientProps = {
 
 type Step = "cart" | "checkout";
 
-type DeliveryAddress = {
-  line1: string;
-  line2: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  country: string;
-};
-
-type SelectedDeliveryOptionState = {
-  requestKey: string;
-  option: CustomerDeliveryOption;
-};
-
 const fieldClass =
   "mt-2 w-full border-0 bg-[color:var(--sf-nav-hover-wash)] px-4 py-3 font-sans text-sm text-[color:var(--sf-accent)] outline-none placeholder:text-[color:var(--sf-accent-text-45)] focus:ring-2 focus:ring-[color:var(--sf-accent)]/15";
 
 const labelClass =
   "font-sans text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--sf-accent)]";
 
-<<<<<<< Updated upstream
 function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   const line1 = String(new FormData(form).get("address") ?? "").trim();
   const line2 = String(new FormData(form).get("address2") ?? "").trim();
@@ -97,48 +69,6 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   };
 }
 
-=======
-function toDeliveryOptionsInput(
-  address: DeliveryAddress,
-  totalAmountMinor: number | null | undefined,
-): CustomerDeliveryOptionsInput | null {
-  const line1 = address.line1.trim();
-  const city = address.city.trim();
-  const province = address.province.trim();
-  const postalCode = address.postalCode.trim();
-  const country = address.country.trim();
-
-  if (
-    !line1 ||
-    !city ||
-    !province ||
-    !postalCode ||
-    !country ||
-    totalAmountMinor == null ||
-    !Number.isFinite(totalAmountMinor)
-  ) {
-    return null;
-  }
-
-  return {
-    dropoffAddressLine1: line1,
-    dropoffAddressLine2: address.line2.trim() || null,
-    dropoffCity: city,
-    dropoffProvince: province,
-    dropoffPostalCode: postalCode,
-    dropoffCountry: country,
-    dropoffLatitude: 0,
-    dropoffLongitude: 0,
-    cartTotal: totalAmountMinor / 100,
-  };
-}
-
-function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
-  const expiresAt = Date.parse(option.expiresAt);
-  return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
-}
-
->>>>>>> Stashed changes
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -188,7 +118,6 @@ export function PublicCartCheckoutClient({
   const checkoutFormRef = useRef<HTMLFormElement>(null);
   const lastQuoteKeyRef = useRef<string | null>(null);
   const [step, setStep] = useState<Step>("cart");
-<<<<<<< Updated upstream
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [shippingRequired, setShippingRequired] = useState(false);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -286,113 +215,6 @@ export function PublicCartCheckoutClient({
     }, 650);
     return () => window.clearTimeout(timer);
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
-=======
-  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
-    line1: "",
-    line2: "",
-    city: "",
-    province: "",
-    postalCode: "",
-    country: "ZA",
-  });
-  const [debouncedDeliveryInput, setDebouncedDeliveryInput] =
-    useState<CustomerDeliveryOptionsInput | null>(null);
-  const [selectedDeliveryState, setSelectedDeliveryState] =
-    useState<SelectedDeliveryOptionState | null>(null);
-
-  const currentDeliveryInput = toDeliveryOptionsInput(
-    deliveryAddress,
-    cart?.totalAmountMinor,
-  );
-  const currentDeliveryRequestKey = currentDeliveryInput
-    ? JSON.stringify(currentDeliveryInput)
-    : null;
-
-  useEffect(() => {
-    const totalAmountMinor = cart?.totalAmountMinor;
-    const input = toDeliveryOptionsInput(deliveryAddress, totalAmountMinor);
-    const delay = input ? 450 : 0;
-    const timer = window.setTimeout(() => setDebouncedDeliveryInput(input), delay);
-    return () => window.clearTimeout(timer);
-  }, [
-    cart?.totalAmountMinor,
-    deliveryAddress,
-  ]);
-
-  const debouncedDeliveryRequestKey = debouncedDeliveryInput
-    ? JSON.stringify(debouncedDeliveryInput)
-    : null;
-  const activeDeliveryInput =
-    currentDeliveryRequestKey &&
-    currentDeliveryRequestKey === debouncedDeliveryRequestKey
-      ? debouncedDeliveryInput
-      : null;
-  const deliveryOptionsQuery = useCustomerDeliveryOptions(
-    storeSlug,
-    activeDeliveryInput,
-  );
-  const refetchDeliveryOptions = deliveryOptionsQuery.refetch;
-  const deliveryOptions = deliveryOptionsQuery.data?.options ?? [];
-  const selectedDeliveryOption =
-    selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-    deliveryOptions.some(
-      (option) =>
-        option.quoteId === selectedDeliveryState.option.quoteId &&
-        option.available &&
-        !isDeliveryQuoteExpired(selectedDeliveryState.option),
-    )
-      ? selectedDeliveryState.option
-      : null;
-  const deliveryOptionsLoading =
-    currentDeliveryInput !== null &&
-    (activeDeliveryInput === null || deliveryOptionsQuery.isFetching);
-  const showDeliveryOptions =
-    currentDeliveryInput !== null &&
-    (deliveryOptionsLoading ||
-      deliveryOptionsQuery.isError ||
-      deliveryOptions.length > 0);
-
-  useEffect(() => {
-    if (
-      !selectedDeliveryState ||
-      selectedDeliveryState.requestKey !== currentDeliveryRequestKey
-    ) {
-      return;
-    }
-    const selected = selectedDeliveryState.option;
-    const expiresAt = Date.parse(selected.expiresAt);
-    const expireSelection = () => {
-      setSelectedDeliveryState((current) =>
-        current?.option.quoteId === selected.quoteId ? null : current,
-      );
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-    };
-
-    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-      expireSelection();
-      return;
-    }
-
-    const timer = window.setTimeout(
-      expireSelection,
-      Math.min(expiresAt - Date.now(), 2_147_000_000),
-    );
-    return () => window.clearTimeout(timer);
-  }, [
-    currentDeliveryRequestKey,
-    selectedDeliveryState,
-    refetchDeliveryOptions,
-  ]);
-
-  function updateDeliveryAddress<K extends keyof DeliveryAddress>(
-    field: K,
-    value: DeliveryAddress[K],
-  ) {
-    setDeliveryAddress((current) => ({ ...current, [field]: value }));
-    setSelectedDeliveryState(null);
-  }
->>>>>>> Stashed changes
 
   if (storefrontQuery.isLoading) {
     return (
@@ -463,7 +285,6 @@ export function PublicCartCheckoutClient({
       throw new Error("Choose a delivery option before paying.");
     }
 
-<<<<<<< Updated upstream
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -522,40 +343,6 @@ export function PublicCartCheckoutClient({
       const payment = await payMutation.mutateAsync({
         orderId: order.id,
         callbackUrl,
-=======
-    if (
-      selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-      isDeliveryQuoteExpired(selectedDeliveryState.option)
-    ) {
-      setSelectedDeliveryState(null);
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-      return;
-    }
-
-    try {
-      const order = await checkoutMutation.mutateAsync({
-        cartId: cart.cartId,
-        customer: {
-          name,
-          phone,
-          email,
-        },
-        shippingAddress: {
-          line1,
-          ...(line2 ? { line2 } : {}),
-          city,
-          province,
-          postalCode,
-          country,
-        },
-        ...(selectedDeliveryOption
-          ? {
-              deliveryMethod: "UBER_DIRECT" as const,
-              deliveryQuoteId: selectedDeliveryOption.quoteId,
-            }
-          : {}),
->>>>>>> Stashed changes
       });
       if (payment.reference) {
         savePaystackReturnPath(payment.reference, orderConfirmPath);
@@ -599,43 +386,21 @@ export function PublicCartCheckoutClient({
       <div className="flex justify-between gap-3">
         <span>Shipping</span>
         <span>
-<<<<<<< Updated upstream
           {selectedOption
             ? formatMinorAmount(selectedOption.amount, selectedOption.currency)
             : shippingRequired
               ? "Select option"
               : formatMinorAmount(0, currency)}
-=======
-          {selectedDeliveryOption
-            ? formatMajorAmount(
-                selectedDeliveryOption.fee,
-                selectedDeliveryOption.currency,
-              )
-            : "R0.00"}
->>>>>>> Stashed changes
         </span>
       </div>
       <div className="flex justify-between gap-3 border-t border-[color:var(--sf-accent-border-10)] pt-3 text-base font-bold">
         <span>Total</span>
-<<<<<<< Updated upstream
         <span className="tabular-nums">
           {cart
             ? hasSubtotal
               ? formatMajorAmount(orderTotalMajor, currency)
               : (cart.totalLabel ?? "—")
             : "—"}
-=======
-        <span>
-          {selectedDeliveryOption &&
-          cart?.totalAmountMinor != null &&
-          cart.currency === selectedDeliveryOption.currency
-            ? formatMinorAmount(
-                cart.totalAmountMinor +
-                  Math.round(selectedDeliveryOption.fee * 100),
-                cart.currency,
-              )
-            : (cart?.totalLabel ?? "—")}
->>>>>>> Stashed changes
         </span>
       </div>
     </div>
@@ -869,28 +634,13 @@ export function PublicCartCheckoutClient({
                     <label className={`${labelClass} sm:col-span-2`}>
                       Street address
                       <StreetAddressAutocomplete
-<<<<<<< Updated upstream
                         className={fieldClass}
                         onAddressApplied={() => bumpAddressQuote()}
-=======
-                        value={deliveryAddress.line1}
-                        onChange={(event) =>
-                          updateDeliveryAddress("line1", event.target.value)
-                        }
-                        className={fieldClass}
->>>>>>> Stashed changes
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Apartment, suite (optional)
-                      <input
-                        name="address2"
-                        value={deliveryAddress.line2}
-                        onChange={(event) =>
-                          updateDeliveryAddress("line2", event.target.value)
-                        }
-                        className={fieldClass}
-                      />
+                      <input name="address2" className={fieldClass} />
                     </label>
                     <label className={labelClass}>
                       City
@@ -898,10 +648,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="city"
                         autoComplete="address-level2"
-                        value={deliveryAddress.city}
-                        onChange={(event) =>
-                          updateDeliveryAddress("city", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -912,10 +658,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="region"
                         autoComplete="address-level1"
-                        value={deliveryAddress.province}
-                        onChange={(event) =>
-                          updateDeliveryAddress("province", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -926,10 +668,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="postalCode"
                         autoComplete="postal-code"
-                        value={deliveryAddress.postalCode}
-                        onChange={(event) =>
-                          updateDeliveryAddress("postalCode", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -937,18 +675,13 @@ export function PublicCartCheckoutClient({
                     <label className={labelClass}>
                       Country
                       <input
-                        required
                         name="country"
+                        defaultValue="ZA"
                         autoComplete="country"
-                        value={deliveryAddress.country}
-                        onChange={(event) =>
-                          updateDeliveryAddress("country", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
                     </label>
-<<<<<<< Updated upstream
                     </div>
 
                     <div className="mt-6 border-t border-[color:var(--sf-accent-border-10)] pt-5">
@@ -1005,104 +738,6 @@ export function PublicCartCheckoutClient({
                       )}
                     </div>
                   </section>
-=======
-                  </div>
-                  {showDeliveryOptions ? (
-                    <section
-                      className="mt-7 border-t border-[color:var(--sf-accent-border-10)] pt-6"
-                      aria-live="polite"
-                    >
-                      <h3 className="font-sans text-sm font-bold text-[color:var(--sf-accent)]">
-                        Delivery Options
-                      </h3>
-                      {deliveryOptionsLoading ? (
-                        <p className="mt-3 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
-                          Checking delivery options…
-                        </p>
-                      ) : null}
-                      {deliveryOptionsQuery.isError ? (
-                        <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <p className="font-sans text-sm text-red-700" role="alert">
-                            {deliveryOptionsQuery.error instanceof Error
-                              ? deliveryOptionsQuery.error.message
-                              : "Delivery options could not be loaded."}
-                          </p>
-                          <button
-                            type="button"
-                            disabled={deliveryOptionsQuery.isFetching}
-                            onClick={() => void deliveryOptionsQuery.refetch()}
-                            className="font-sans text-sm font-semibold text-[color:var(--sf-accent)] underline disabled:opacity-50"
-                          >
-                            {deliveryOptionsQuery.isFetching
-                              ? "Retrying…"
-                              : "Retry"}
-                          </button>
-                        </div>
-                      ) : null}
-                      {deliveryOptions.length > 0 ? (
-                        <fieldset className="mt-3 space-y-3">
-                          <legend className="sr-only">
-                            Choose a delivery option
-                          </legend>
-                          {deliveryOptions.map((option) => {
-                            const checked =
-                              selectedDeliveryOption?.quoteId === option.quoteId;
-                            return (
-                              <label
-                                key={option.quoteId}
-                                className={`flex gap-3 border border-[color:var(--sf-accent-border-15)] p-4 ${
-                                  option.available
-                                    ? "cursor-pointer"
-                                    : "opacity-70"
-                                } ${checked ? "bg-[color:var(--sf-nav-hover-wash)]" : "bg-white"}`}
-                              >
-                                <input
-                                  type="radio"
-                                  name="deliveryOption"
-                                  value={option.quoteId}
-                                  checked={checked}
-                                  disabled={
-                                    !option.available ||
-                                    deliveryOptionsQuery.isFetching
-                                  }
-                                  onChange={() =>
-                                    setSelectedDeliveryState({
-                                      requestKey: currentDeliveryRequestKey!,
-                                      option,
-                                    })
-                                  }
-                                  className="mt-1 accent-[color:var(--sf-accent)]"
-                                />
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                                    <span className="font-sans text-sm font-semibold text-[color:var(--sf-accent)]">
-                                      {option.providerName}
-                                    </span>
-                                    <span className="font-sans text-sm font-bold tabular-nums text-[color:var(--sf-accent)]">
-                                      {formatMajorAmount(
-                                        option.fee,
-                                        option.currency,
-                                      )}
-                                    </span>
-                                  </span>
-                                  <span className="mt-1 block font-sans text-xs text-[color:var(--sf-accent-text-60)]">
-                                    {option.estimatedDeliveryTime}
-                                  </span>
-                                  {!option.available &&
-                                  option.unavailableReason ? (
-                                    <span className="mt-2 block font-sans text-xs text-red-700">
-                                      {option.unavailableReason}
-                                    </span>
-                                  ) : null}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </fieldset>
-                      ) : null}
-                    </section>
-                  ) : null}
->>>>>>> Stashed changes
                 </form>
               )}
             </div>

@@ -356,14 +356,9 @@ export function ApiCartProvider({ storeSlug, children }: ApiCartProviderProps) {
       totalLabel: cart
         ? formatMajorAmount(cart.totalAmount, cart.currency)
         : null,
-<<<<<<< Updated upstream
       subtotalAmount: cart?.subtotalAmount,
       totalAmount: cart?.totalAmount,
       currency: cart?.currency,
-=======
-      totalAmountMinor: cart?.totalAmount ?? null,
-      currency: cart?.currency ?? null,
->>>>>>> Stashed changes
       isDrawerOpen,
       isAddedModalOpen,
       openDrawer,

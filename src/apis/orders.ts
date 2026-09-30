@@ -1,5 +1,4 @@
 import { getSmeApiBaseUrl } from "@/apis/config";
-import { normalizeUberDirectDelivery } from "@/apis/delivery";
 import { networkFailure, parseApiEnvelope } from "@/apis/api-result";
 import type {
   Order,
@@ -63,10 +62,9 @@ function asOrder(raw: Order): Order {
     customerPhone: String(raw.customerPhone ?? ""),
     shippingAddress: {
       line1: String(raw.shippingAddress?.line1 ?? ""),
-      line2:
-        raw.shippingAddress?.line2 == null
-          ? undefined
-          : String(raw.shippingAddress.line2),
+      line2: raw.shippingAddress?.line2
+        ? String(raw.shippingAddress.line2)
+        : undefined,
       city: String(raw.shippingAddress?.city ?? ""),
       province: String(raw.shippingAddress?.province ?? ""),
       postalCode: String(raw.shippingAddress?.postalCode ?? ""),
@@ -78,42 +76,6 @@ function asOrder(raw: Order): Order {
     currency: String(raw.currency ?? "ZAR"),
     status: asOrderStatus(raw.status),
     paymentStatus: asPaymentStatus(raw.paymentStatus),
-    ...(raw.deliveryMethod === undefined
-      ? {}
-      : {
-          deliveryMethod:
-            raw.deliveryMethod == null ? null : String(raw.deliveryMethod),
-        }),
-    ...(raw.deliveryQuoteId === undefined
-      ? {}
-      : {
-          deliveryQuoteId:
-            raw.deliveryQuoteId == null ? null : String(raw.deliveryQuoteId),
-        }),
-    ...(raw.deliveryQuoteExpiresAt === undefined
-      ? {}
-      : {
-          deliveryQuoteExpiresAt:
-            raw.deliveryQuoteExpiresAt == null
-              ? null
-              : String(raw.deliveryQuoteExpiresAt),
-        }),
-    ...(raw.deliveryEstimatedDeliveryTime === undefined
-      ? {}
-      : {
-          deliveryEstimatedDeliveryTime:
-            raw.deliveryEstimatedDeliveryTime == null
-              ? null
-              : String(raw.deliveryEstimatedDeliveryTime),
-        }),
-    ...(raw.delivery === undefined
-      ? {}
-      : {
-          delivery:
-            raw.delivery == null
-              ? null
-              : normalizeUberDirectDelivery(raw.delivery),
-        }),
     items: Array.isArray(raw.items)
       ? raw.items.map((item) => ({
           id: String(item.id),
