@@ -21,7 +21,6 @@ import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-ro
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import { useCheckout } from "@/hooks/use-checkout";
-import { useCustomerDeliveryOptions } from "@/hooks/use-delivery-options";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
 import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
 import {
@@ -38,30 +37,19 @@ import {
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
+<<<<<<< HEAD
 import type {
   CustomerDeliveryOption,
   CustomerDeliveryOptionsInput,
 } from "@/types/delivery";
+=======
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
 };
 
 type Step = "cart" | "checkout";
-
-type DeliveryAddress = {
-  line1: string;
-  line2: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  country: string;
-};
-
-type SelectedDeliveryOptionState = {
-  requestKey: string;
-  option: CustomerDeliveryOption;
-};
 
 const fieldClass =
   "mt-2 w-full border-0 bg-[color:var(--sf-nav-hover-wash)] px-4 py-3 font-sans text-sm text-[color:var(--sf-accent)] outline-none placeholder:text-[color:var(--sf-accent-text-45)] focus:ring-2 focus:ring-[color:var(--sf-accent)]/15";
@@ -88,6 +76,7 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   };
 }
 
+<<<<<<< HEAD
 function toDeliveryOptionsInput(
   address: ShippingAddress,
   totalAmountMajor: number | null | undefined,
@@ -129,6 +118,8 @@ function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
   return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
 }
 
+=======
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -274,6 +265,7 @@ export function PublicCartCheckoutClient({
     }, 650);
     return () => window.clearTimeout(timer);
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
+<<<<<<< HEAD
 
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
     line1: "",
@@ -379,6 +371,8 @@ export function PublicCartCheckoutClient({
     setDeliveryAddress((current) => ({ ...current, [field]: value }));
     setSelectedDeliveryState(null);
   }
+=======
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 
   if (storefrontQuery.isLoading) {
     return (
@@ -451,6 +445,7 @@ export function PublicCartCheckoutClient({
       throw new Error("Choose a delivery option before paying.");
     }
 
+<<<<<<< HEAD
     if (
       selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
       isDeliveryQuoteExpired(selectedDeliveryState.option)
@@ -461,6 +456,8 @@ export function PublicCartCheckoutClient({
       throw new Error("Your Uber Direct quote expired. Request a new quote.");
     }
 
+=======
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -822,6 +819,7 @@ export function PublicCartCheckoutClient({
                       Street address
                       <StreetAddressAutocomplete
                         className={fieldClass}
+<<<<<<< HEAD
                         onChange={(event) =>
                           updateDeliveryAddress("line1", event.target.value)
                         }
@@ -837,18 +835,14 @@ export function PublicCartCheckoutClient({
                           setSelectedDeliveryState(null);
                           bumpAddressQuote();
                         }}
+=======
+                        onAddressApplied={() => bumpAddressQuote()}
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Apartment, suite (optional)
-                      <input
-                        name="address2"
-                        value={deliveryAddress.line2}
-                        onChange={(event) =>
-                          updateDeliveryAddress("line2", event.target.value)
-                        }
-                        className={fieldClass}
-                      />
+                      <input name="address2" className={fieldClass} />
                     </label>
                     <label className={labelClass}>
                       City
@@ -856,10 +850,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="city"
                         autoComplete="address-level2"
-                        value={deliveryAddress.city}
-                        onChange={(event) =>
-                          updateDeliveryAddress("city", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -870,10 +860,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="region"
                         autoComplete="address-level1"
-                        value={deliveryAddress.province}
-                        onChange={(event) =>
-                          updateDeliveryAddress("province", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -884,10 +870,6 @@ export function PublicCartCheckoutClient({
                         required
                         name="postalCode"
                         autoComplete="postal-code"
-                        value={deliveryAddress.postalCode}
-                        onChange={(event) =>
-                          updateDeliveryAddress("postalCode", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -895,13 +877,9 @@ export function PublicCartCheckoutClient({
                     <label className={labelClass}>
                       Country
                       <input
-                        required
                         name="country"
+                        defaultValue="ZA"
                         autoComplete="country"
-                        value={deliveryAddress.country}
-                        onChange={(event) =>
-                          updateDeliveryAddress("country", event.target.value)
-                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -1032,6 +1010,7 @@ export function PublicCartCheckoutClient({
                           Enter a complete address to see delivery options.
                         </p>
                       )}
+<<<<<<< HEAD
                       {deliveryOptionsQuery.isError ? (
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <p className="font-sans text-xs text-red-700" role="alert">
@@ -1049,6 +1028,8 @@ export function PublicCartCheckoutClient({
                           </button>
                         </div>
                       ) : null}
+=======
+>>>>>>> parent of aa0ad3e (Uber Delivery Setup)
                     </div>
                   </section>
                 </form>
