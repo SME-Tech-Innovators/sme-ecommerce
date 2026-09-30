@@ -30,10 +30,16 @@ export type PreviewCartContextValue = {
   /** Backend totals when `mode === "api"`. */
   subtotalLabel?: string | null;
   totalLabel?: string | null;
+<<<<<<< Updated upstream
   /** Major units from backend cart (same as subtotalLabel). */
-  subtotalAmount?: number | null;
-  totalAmount?: number | null;
+  subtotalAmount?: number;
+  totalAmount?: number;
+  currency?: string;
+=======
+  /** Backend minor-unit total and currency when `mode === "api"`. */
+  totalAmountMinor?: number | null;
   currency?: string | null;
+>>>>>>> Stashed changes
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;
