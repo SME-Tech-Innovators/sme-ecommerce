@@ -63,10 +63,9 @@ function asOrder(raw: Order): Order {
     customerPhone: String(raw.customerPhone ?? ""),
     shippingAddress: {
       line1: String(raw.shippingAddress?.line1 ?? ""),
-      line2:
-        raw.shippingAddress?.line2 == null
-          ? undefined
-          : String(raw.shippingAddress.line2),
+      line2: raw.shippingAddress?.line2
+        ? String(raw.shippingAddress.line2)
+        : undefined,
       city: String(raw.shippingAddress?.city ?? ""),
       province: String(raw.shippingAddress?.province ?? ""),
       postalCode: String(raw.shippingAddress?.postalCode ?? ""),

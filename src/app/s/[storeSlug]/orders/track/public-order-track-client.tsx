@@ -7,12 +7,9 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< Updated upstream
+import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
-=======
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
->>>>>>> Stashed changes
 import { OrderStatusTimeline } from "@/components/storefront/order-status-timeline";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
@@ -57,7 +54,13 @@ function OrderResultCard({
   storeSlug: string;
   token: string;
 }) {
-  const shippingQuery = usePublicOrderShipping(storeSlug, order.id);
+  const isUberDirectOrder =
+    order.deliveryMethod?.toUpperCase() === "UBER_DIRECT";
+  const shippingQuery = usePublicOrderShipping(
+    storeSlug,
+    order.id,
+    !isUberDirectOrder,
+  );
   const shipping = shippingQuery.data;
   const isBobGo = shipping?.provider?.toLowerCase() === "bobgo";
   return (
@@ -74,13 +77,15 @@ function OrderResultCard({
         </p>
       </div>
 
-      {shippingQuery.isLoading ? <p role="status">Loading Bob Go delivery status…</p> : null}
-      {shippingQuery.isError ? <p role="alert">Could not load delivery tracking. Please try again.</p> : null}
-      {isBobGo && shipping && !shippingQuery.isError ? <OrderStatusTimeline shipping={shipping} /> : null}
-      {shipping && !isBobGo && !shippingQuery.isError ? <p>Delivery is arranged by the store. Contact the store for updates.</p> : null}
-      <StorefrontButton variant="outline" disabled={shippingQuery.isFetching} onClick={() => void shippingQuery.refetch()}>
-        {shippingQuery.isFetching ? "Updating…" : "Refresh delivery status"}
-      </StorefrontButton>
+      {!isUberDirectOrder && shippingQuery.isLoading ? <p role="status">Loading Bob Go delivery status…</p> : null}
+      {!isUberDirectOrder && shippingQuery.isError ? <p role="alert">Could not load delivery tracking. Please try again.</p> : null}
+      {!isUberDirectOrder && isBobGo && shipping && !shippingQuery.isError ? <OrderStatusTimeline shipping={shipping} /> : null}
+      {!isUberDirectOrder && shipping && !isBobGo && !shippingQuery.isError ? <p>Delivery is arranged by the store. Contact the store for updates.</p> : null}
+      {!isUberDirectOrder ? (
+        <StorefrontButton variant="outline" disabled={shippingQuery.isFetching} onClick={() => void shippingQuery.refetch()}>
+          {shippingQuery.isFetching ? "Updating…" : "Refresh delivery status"}
+        </StorefrontButton>
+      ) : null}
       <CustomerCancellationPanel storeSlug={storeSlug} orderId={order.id} token={token} />
 
       {order.delivery ? (
@@ -94,16 +99,9 @@ function OrderResultCard({
         <p className="mt-2 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-70)]">
           {formatShipTo(order) || "—"}
         </p>
-<<<<<<< Updated upstream
-        <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
-=======
-        {!order.delivery ? (
-          <p className="mt-3 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-            Delivery timing is arranged by the store. Carrier tracking is not
-            available for this order.
-          </p>
+        {!isUberDirectOrder ? (
+          <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
         ) : null}
->>>>>>> Stashed changes
       </div>
 
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">
