@@ -10,12 +10,19 @@ import {
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+<<<<<<< Updated upstream
+>>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { StorefrontCheckoutConfirmModal } from "@/components/storefront/storefront-checkout-confirm-modal";
 import { StorefrontOrderSuccessModal } from "@/components/storefront/storefront-order-success-modal";
+=======
+import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
+>>>>>>> Stashed changes
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { useOrderConfirmation, useVerifyOrderPayment } from "@/hooks/use-checkout";
@@ -101,12 +108,10 @@ export function PublicOrderConfirmationClient({
   const isPaidForShipping =
     orderForShipping?.paymentStatus === "paid" ||
     orderForShipping?.status === "paid";
-  const isUberDirectOrder =
-    orderForShipping?.deliveryMethod?.toUpperCase() === "UBER_DIRECT";
   const shippingQuery = usePublicOrderShipping(
     storeSlug,
     orderId,
-    Boolean(isPaidForShipping && !isUberDirectOrder),
+    Boolean(isPaidForShipping),
   );
   const bobGoTrackingUrl = bobGoPublicTrackingUrl(
     shippingQuery.data?.trackingReference,
@@ -339,9 +344,7 @@ export function PublicOrderConfirmationClient({
             </div>
           )}
 
-          {order.shippingAmount > 0 ||
-          isPaid ||
-          order.deliveryMethod?.toUpperCase() === "UBER_DIRECT" ? (
+          {order.shippingAmount > 0 || isPaid ? (
             <section
               id="order-delivery"
               className="mt-8 scroll-mt-24 border border-[color:var(--sf-accent-border-10)] bg-white p-6 shadow-sm"
@@ -349,31 +352,7 @@ export function PublicOrderConfirmationClient({
               <h2 className="font-sans text-sm font-bold uppercase tracking-[0.14em] text-[color:var(--sf-accent)]">
                 Delivery
               </h2>
-              {order.deliveryMethod?.toUpperCase() === "UBER_DIRECT" ? (
-                order.delivery ? (
-                  <DeliveryTracking
-                    delivery={order.delivery}
-                    variant="storefront"
-                    feeLabel={formatMajorAmount(
-                      order.shippingAmount,
-                      order.currency,
-                    )}
-                    estimatedDeliveryTime={
-                      order.deliveryEstimatedDeliveryTime
-                    }
-                  />
-                ) : (
-                  <p className="mt-3 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
-                    Your Uber Direct courier will appear here after the store
-                    books delivery.
-                  </p>
-                )
-              ) : (
-                <OrderShippingStatusCard
-                  storeSlug={storeSlug}
-                  orderId={orderId}
-                />
-              )}
+              <OrderShippingStatusCard storeSlug={storeSlug} orderId={orderId} />
             </section>
           ) : null}
 
@@ -430,6 +409,12 @@ export function PublicOrderConfirmationClient({
               </div>
             ) : null}
           </section>
+
+          {order.delivery ? (
+            <div className="mt-8">
+              <DeliveryTracking delivery={order.delivery} variant="storefront" />
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-wrap gap-3">
             <StorefrontButtonLink href={basePath} className="rounded-none">

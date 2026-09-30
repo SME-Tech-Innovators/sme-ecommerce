@@ -110,12 +110,20 @@ export type CheckoutBody = {
     postalCode: string;
     country: string;
   };
+<<<<<<< Updated upstream
   shippingSelection?: CheckoutShippingSelection;
+<<<<<<< HEAD
 <<<<<<< HEAD
   deliveryMethod?: "UBER_DIRECT";
   deliveryQuoteId?: string;
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+=======
+  deliveryMethod?: "UBER_DIRECT";
+  deliveryQuoteId?: string;
+>>>>>>> Stashed changes
+>>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 };
 
 export type CartResult = { ok: true; data: Cart } | ParsedApiFailure;

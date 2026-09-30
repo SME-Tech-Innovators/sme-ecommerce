@@ -9,7 +9,11 @@ import { OrdersPanel } from "@/components/dashboard/orders-panel";
 import { ProductsPanel } from "@/components/dashboard/products-panel";
 import { InventoryPanel } from "@/components/dashboard/inventory-panel";
 import { AnalyticsPanel } from "@/components/dashboard/analytics-panel";
+<<<<<<< Updated upstream
 import { SettingsPanel } from "@/components/dashboard/settings-panel";
+=======
+import { WorkspaceSettingsPanel } from "@/components/dashboard/workspace-settings-panel";
+>>>>>>> Stashed changes
 import { StorefrontPanel } from "@/components/storefront/storefront-panel";
 import { StorefrontTemplatesPanel } from "@/components/storefront/storefront-templates-panel";
 import {
@@ -146,7 +150,11 @@ export function DashboardWorkspaceClient({
             </div>
           ) : activeId === "settings" ? (
             <div className="flex min-h-0 flex-1 flex-col">
+<<<<<<< Updated upstream
               <SettingsPanel workspaceId={workspaceId} />
+=======
+              <WorkspaceSettingsPanel workspaceId={workspaceId} />
+>>>>>>> Stashed changes
             </div>
           ) : (
             <WorkspaceEmptyState
