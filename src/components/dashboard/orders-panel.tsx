@@ -2,6 +2,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 =======
 import { useMemo, useState, useSyncExternalStore } from "react";
@@ -12,10 +13,20 @@ import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel"
 <<<<<<< HEAD
 =======
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+=======
+<<<<<<< Updated upstream
+import { useMemo, useState, useSyncExternalStore } from "react";
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 import { OrderCancellationPanel } from "@/components/dashboard/order-cancellation-panel";
 import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
+import { useMerchantOrders } from "@/hooks/use-orders";
 import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
+<<<<<<< HEAD
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+=======
+import { useEffect, useMemo, useRef, useState } from "react";
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 import { Truck } from "lucide-react";
 import { toast } from "sonner";
 import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
@@ -26,10 +37,14 @@ import {
   useUpdateMerchantOrderStatus,
 } from "@/hooks/use-orders";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
@@ -63,25 +78,6 @@ function orderBadgeClass(status: OrderStatus): string {
   }
 }
 
-function nextStatusActions(
-  status: OrderStatus,
-): Array<{ status: "processing" | "fulfilled" | "cancelled"; label: string }> {
-  switch (status) {
-    case "paid":
-      return [
-        { status: "processing", label: "Mark preparing" },
-        { status: "cancelled", label: "Cancel order" },
-      ];
-    case "processing":
-      return [
-        { status: "fulfilled", label: "Mark fulfilled" },
-        { status: "cancelled", label: "Cancel order" },
-      ];
-    default:
-      return [];
-  }
-}
-
 function subscribeToAuth(onChange: () => void) {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
@@ -96,7 +92,9 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   const authReady = signedIn !== null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+<<<<<<< Updated upstream
   const ordersQuery = useMerchantOrders(workspaceId, signedIn === true);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
@@ -109,6 +107,22 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   const bookDelivery = useBookUberDirectDelivery(workspaceId);
   const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+=======
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSignedIn(Boolean(getStoredAuthSession()?.accessToken));
+      setAuthReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const ordersQuery = useMerchantOrders(workspaceId, signedIn);
+  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
+  const bookDelivery = useBookUberDirectDelivery(workspaceId);
+  const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 
   const orders = useMemo(() => {
     const list = ordersQuery.data ?? [];
@@ -124,8 +138,13 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
   async function onUpdateStatus(
     orderId: string,
     status: "processing" | "fulfilled" | "cancelled",
@@ -190,10 +209,14 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
   if (!authReady || (signedIn && ordersQuery.isLoading)) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
@@ -332,6 +355,7 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
               </p>
             </div>
 
+<<<<<<< Updated upstream
             <OrderCancellationPanel key={`cancellation:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
 
             <OrderShippingPanel key={`shipping:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
@@ -339,15 +363,19 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
             <OrderReturnPanel key={`${workspaceId}:${selected.id}`} workspaceId={workspaceId} order={selected} />
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+=======
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
             {showDeliverySection ? (
               <section className="space-y-3 border border-primary-blue/10 bg-white p-3">
                 {selected.delivery ? (
                   <DeliveryTracking
                     delivery={selected.delivery}
                     variant="dashboard"
-                    feeLabel={formatMajorAmount(
+                    feeLabel={formatMinorAmount(
                       selected.shippingAmount,
                       selected.currency,
                     )}
@@ -390,7 +418,7 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                       Delivery · Uber Direct
                     </p>
                     <p className="mt-1 font-sans text-xs text-muted-foreground">
-                      {formatMajorAmount(selected.shippingAmount, selected.currency)}
+                      {formatMinorAmount(selected.shippingAmount, selected.currency)}
                       {selected.deliveryEstimatedDeliveryTime
                         ? ` · ${selected.deliveryEstimatedDeliveryTime}`
                         : null}
@@ -406,7 +434,7 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                   Fulfilment
                 </p>
                 <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
-                  Update order status for the customer order page.
+                  Update status for the customer order page.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {nextStatusActions(selected.status).map((action) => (
@@ -430,10 +458,14 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
               </div>
             ) : null}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 
             <ul className="divide-y divide-primary-blue/10 border border-primary-blue/10 bg-white">
               {selected.items.map((item) => (

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+<<<<<<< Updated upstream
 import {
   type FormEvent,
   useCallback,
@@ -9,6 +10,9 @@ import {
   useRef,
   useState,
 } from "react";
+=======
+import { type FormEvent, useEffect, useState } from "react";
+>>>>>>> Stashed changes
 import { toast } from "sonner";
 import { getAppOrigin } from "@/apis/config";
 import { postShippingQuote } from "@/apis/shipping";
@@ -35,21 +39,31 @@ import {
   savePaystackReturnPath,
 } from "@/lib/paystack-return";
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
+<<<<<<< Updated upstream
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+=======
+import { formatMajorAmount, formatMinorAmount } from "@/lib/format-money";
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 import type {
   CustomerDeliveryOption,
   CustomerDeliveryOptionsInput,
 } from "@/types/delivery";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
@@ -63,6 +77,7 @@ const fieldClass =
 const labelClass =
   "font-sans text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--sf-accent)]";
 
+<<<<<<< Updated upstream
 function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   const line1 = String(new FormData(form).get("address") ?? "").trim();
   const line2 = String(new FormData(form).get("address2") ?? "").trim();
@@ -84,17 +99,20 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+=======
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 function toDeliveryOptionsInput(
-  address: ShippingAddress,
-  totalAmountMajor: number | null | undefined,
+  address: DeliveryAddress,
+  totalAmountMinor: number | null | undefined,
 ): CustomerDeliveryOptionsInput | null {
   const line1 = address.line1.trim();
-  const line2 = (address.line2 ?? "").trim();
   const city = address.city.trim();
-  const province = address.province?.trim() ?? "";
-  const postalCode = address.postalCode?.trim() ?? "";
+  const province = address.province.trim();
+  const postalCode = address.postalCode.trim();
   const country = address.country.trim();
 
   if (
@@ -103,22 +121,22 @@ function toDeliveryOptionsInput(
     !province ||
     !postalCode ||
     !country ||
-    totalAmountMajor == null ||
-    !Number.isFinite(totalAmountMajor)
+    totalAmountMinor == null ||
+    !Number.isFinite(totalAmountMinor)
   ) {
     return null;
   }
 
   return {
     dropoffAddressLine1: line1,
-    dropoffAddressLine2: line2 || null,
+    dropoffAddressLine2: address.line2.trim() || null,
     dropoffCity: city,
     dropoffProvince: province,
     dropoffPostalCode: postalCode,
     dropoffCountry: country,
     dropoffLatitude: 0,
     dropoffLongitude: 0,
-    cartTotal: totalAmountMajor,
+    cartTotal: totalAmountMinor / 100,
   };
 }
 
@@ -128,10 +146,14 @@ function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -181,6 +203,7 @@ export function PublicCartCheckoutClient({
   const checkoutFormRef = useRef<HTMLFormElement>(null);
   const lastQuoteKeyRef = useRef<string | null>(null);
   const [step, setStep] = useState<Step>("cart");
+<<<<<<< Updated upstream
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [shippingRequired, setShippingRequired] = useState(false);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -193,10 +216,11 @@ export function PublicCartCheckoutClient({
     setAddressQuoteTick((t) => t + 1);
   }, []);
 
-  const cartId = cart?.cartId;
+  const shippingOptionsCountRef = useRef(0);
+  shippingOptionsCountRef.current = shippingOptions.length;
 
   const fetchDeliveryOptions = useCallback(async () => {
-    if (!cartId) {
+    if (!cart?.cartId) {
       return;
     }
     const form = checkoutFormRef.current;
@@ -208,7 +232,7 @@ export function PublicCartCheckoutClient({
     const quoteKey = JSON.stringify(shippingAddress);
     if (
       lastQuoteKeyRef.current === quoteKey &&
-      shippingOptions.length > 0
+      shippingOptionsCountRef.current > 0
     ) {
       return;
     }
@@ -218,7 +242,7 @@ export function PublicCartCheckoutClient({
     setSelectedOptionId(null);
     try {
       const quoteBody = {
-        cartId,
+        cartId: cart.cartId,
         shippingAddress,
       };
       let result = await postShippingQuote(storeSlug, quoteBody);
@@ -268,7 +292,7 @@ export function PublicCartCheckoutClient({
     } finally {
       setQuoteLoading(false);
     }
-  }, [cartId, shippingOptions.length, storeSlug]);
+  }, [cart?.cartId, storeSlug]);
 
   useEffect(() => {
     if (step !== "checkout") return;
@@ -279,9 +303,13 @@ export function PublicCartCheckoutClient({
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
+=======
+=======
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
     line1: "",
     line2: "",
@@ -297,19 +325,20 @@ export function PublicCartCheckoutClient({
 
   const currentDeliveryInput = toDeliveryOptionsInput(
     deliveryAddress,
-    cart?.totalAmount,
+    cart?.totalAmountMinor,
   );
   const currentDeliveryRequestKey = currentDeliveryInput
     ? JSON.stringify(currentDeliveryInput)
     : null;
 
   useEffect(() => {
-    const input = toDeliveryOptionsInput(deliveryAddress, cart?.totalAmount);
+    const totalAmountMinor = cart?.totalAmountMinor;
+    const input = toDeliveryOptionsInput(deliveryAddress, totalAmountMinor);
     const delay = input ? 450 : 0;
     const timer = window.setTimeout(() => setDebouncedDeliveryInput(input), delay);
     return () => window.clearTimeout(timer);
   }, [
-    cart?.totalAmount,
+    cart?.totalAmountMinor,
     deliveryAddress,
   ]);
 
@@ -387,10 +416,14 @@ export function PublicCartCheckoutClient({
     setSelectedDeliveryState(null);
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
 
   if (storefrontQuery.isLoading) {
     return (
@@ -431,10 +464,8 @@ export function PublicCartCheckoutClient({
 
   const currency = cart?.currency ?? "ZAR";
   const subtotalMajor = cart?.subtotalAmount ?? 0;
-  const shippingMajor = selectedOption
-    ? selectedOption.amount / 100
-    : (selectedDeliveryOption?.fee ?? 0);
-  const orderTotalMajor = subtotalMajor + shippingMajor;
+  const shippingMinor = selectedOption?.amount ?? 0;
+  const orderTotalMajor = subtotalMajor + shippingMinor / 100;
   const hasSubtotal = cart?.subtotalAmount != null;
 
   async function placeOrderFromForm() {
@@ -459,10 +490,11 @@ export function PublicCartCheckoutClient({
     if (!email) {
       throw new Error("Please enter your email address.");
     }
-    if (shippingRequired && !selectedOption && !selectedDeliveryOption) {
+    if (shippingRequired && !selectedOption) {
       throw new Error("Choose a delivery option before paying.");
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -482,6 +514,9 @@ export function PublicCartCheckoutClient({
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+<<<<<<< Updated upstream
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -497,7 +532,7 @@ export function PublicCartCheckoutClient({
         postalCode,
         country,
       },
-      ...(selectedOption && !selectedDeliveryOption
+      ...(selectedOption
         ? {
             shippingSelection: {
               optionId: selectedOption.id,
@@ -510,12 +545,6 @@ export function PublicCartCheckoutClient({
             },
           }
         : {}),
-      ...(selectedDeliveryOption
-        ? {
-            deliveryMethod: "UBER_DIRECT" as const,
-            deliveryQuoteId: selectedDeliveryOption.quoteId,
-          }
-        : {}),
     });
   }
 
@@ -523,7 +552,7 @@ export function PublicCartCheckoutClient({
     const form = checkoutFormRef.current;
     if (!form) return;
     if (!form.reportValidity()) return;
-    if (shippingRequired && !selectedOption && !selectedDeliveryOption) {
+    if (shippingRequired && !selectedOption) {
       toast.error("Choose a delivery option to continue.");
       return;
     }
@@ -546,6 +575,40 @@ export function PublicCartCheckoutClient({
       const payment = await payMutation.mutateAsync({
         orderId: order.id,
         callbackUrl,
+=======
+    if (
+      selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
+      isDeliveryQuoteExpired(selectedDeliveryState.option)
+    ) {
+      setSelectedDeliveryState(null);
+      toast.error("Your Uber Direct quote expired. Request a new quote.");
+      void refetchDeliveryOptions();
+      return;
+    }
+
+    try {
+      const order = await checkoutMutation.mutateAsync({
+        cartId: cart.cartId,
+        customer: {
+          name,
+          phone,
+          email,
+        },
+        shippingAddress: {
+          line1,
+          ...(line2 ? { line2 } : {}),
+          city,
+          province,
+          postalCode,
+          country,
+        },
+        ...(selectedDeliveryOption
+          ? {
+              deliveryMethod: "UBER_DIRECT" as const,
+              deliveryQuoteId: selectedDeliveryOption.quoteId,
+            }
+          : {}),
+>>>>>>> Stashed changes
       });
       if (payment.reference) {
         savePaystackReturnPath(payment.reference, orderConfirmPath);
@@ -589,26 +652,43 @@ export function PublicCartCheckoutClient({
       <div className="flex justify-between gap-3">
         <span>Shipping</span>
         <span>
+<<<<<<< Updated upstream
           {selectedOption
             ? formatMinorAmount(selectedOption.amount, selectedOption.currency)
-            : selectedDeliveryOption
-              ? formatMajorAmount(
-                  selectedDeliveryOption.fee,
-                  selectedDeliveryOption.currency,
-                )
             : shippingRequired
               ? "Select option"
               : formatMinorAmount(0, currency)}
+=======
+          {selectedDeliveryOption
+            ? formatMajorAmount(
+                selectedDeliveryOption.fee,
+                selectedDeliveryOption.currency,
+              )
+            : "R0.00"}
+>>>>>>> Stashed changes
         </span>
       </div>
       <div className="flex justify-between gap-3 border-t border-[color:var(--sf-accent-border-10)] pt-3 text-base font-bold">
         <span>Total</span>
+<<<<<<< Updated upstream
         <span className="tabular-nums">
           {cart
             ? hasSubtotal
               ? formatMajorAmount(orderTotalMajor, currency)
               : (cart.totalLabel ?? "—")
             : "—"}
+=======
+        <span>
+          {selectedDeliveryOption &&
+          cart?.totalAmountMinor != null &&
+          cart.currency === selectedDeliveryOption.currency
+            ? formatMinorAmount(
+                cart.totalAmountMinor +
+                  Math.round(selectedDeliveryOption.fee * 100),
+                cart.currency,
+              )
+            : (cart?.totalLabel ?? "—")}
+>>>>>>> Stashed changes
         </span>
       </div>
     </div>
@@ -842,7 +922,9 @@ export function PublicCartCheckoutClient({
                     <label className={`${labelClass} sm:col-span-2`}>
                       Street address
                       <StreetAddressAutocomplete
+<<<<<<< Updated upstream
                         className={fieldClass}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -868,6 +950,16 @@ export function PublicCartCheckoutClient({
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+                        onAddressApplied={() => bumpAddressQuote()}
+=======
+                        value={deliveryAddress.line1}
+                        onChange={(event) =>
+                          updateDeliveryAddress("line1", event.target.value)
+                        }
+                        className={fieldClass}
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
@@ -914,24 +1006,24 @@ export function PublicCartCheckoutClient({
                         onBlur={() => bumpAddressQuote()}
                       />
                     </label>
+<<<<<<< Updated upstream
                     </div>
 
                     <div className="mt-6 border-t border-[color:var(--sf-accent-border-10)] pt-5">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-sans text-sm font-bold text-[color:var(--sf-accent)]">
-                          Delivery Options
+                          Delivery method
                         </h3>
-                        {quoteLoading || deliveryOptionsLoading ? (
+                        {quoteLoading ? (
                           <span className="font-sans text-[11px] text-[color:var(--sf-accent-text-45)]">
-                            Updating delivery options…
+                            Updating rates…
                           </span>
                         ) : null}
                       </div>
                       <p className="mt-1 font-sans text-xs text-[color:var(--sf-accent-text-60)]">
-                        Choose courier delivery or pickup when available.
+                        Options load automatically when your address is complete.
                       </p>
-                      {shippingOptions.length > 0 ||
-                      (showDeliveryOptions && deliveryOptions.length > 0) ? (
+                      {shippingOptions.length > 0 ? (
                         <fieldset className="mt-4 space-y-2">
                           <legend className="sr-only">Choose delivery</legend>
                           {shippingOptions.map((option) => (
@@ -941,16 +1033,10 @@ export function PublicCartCheckoutClient({
                             >
                               <input
                                 type="radio"
-                                name="deliveryOption"
+                                name="shippingOption"
                                 className="mt-1"
-                                checked={
-                                  selectedOptionId === option.id &&
-                                  !selectedDeliveryOption
-                                }
-                                onChange={() => {
-                                  setSelectedDeliveryState(null);
-                                  setSelectedOptionId(option.id);
-                                }}
+                                checked={selectedOptionId === option.id}
+                                onChange={() => setSelectedOptionId(option.id)}
                               />
                               <span className="min-w-0 flex-1 font-sans text-sm">
                                 <span className="font-semibold text-[color:var(--sf-accent)]">
@@ -965,102 +1051,60 @@ export function PublicCartCheckoutClient({
                               </span>
                             </label>
                           ))}
-                          {showDeliveryOptions
-                            ? deliveryOptions.map((option) => {
-                                const checked =
-                                  selectedDeliveryOption?.quoteId ===
-                                  option.quoteId;
-                                const expired = isDeliveryQuoteExpired(option);
-                                return (
-                                  <label
-                                    key={option.quoteId}
-                                    className={`flex gap-3 border border-[color:var(--sf-accent-border-15)] p-4 ${
-                                      option.available && !expired
-                                        ? "cursor-pointer"
-                                        : "opacity-70"
-                                    } ${checked ? "bg-[color:var(--sf-nav-hover-wash)]" : "bg-white"}`}
-                                  >
-                                    <input
-                                      type="radio"
-                                      name="deliveryOption"
-                                      value={option.quoteId}
-                                      checked={checked}
-                                      disabled={
-                                        !option.available ||
-                                        expired ||
-                                        deliveryOptionsQuery.isFetching
-                                      }
-                                      onChange={() => {
-                                        setSelectedOptionId(null);
-                                        setSelectedDeliveryState({
-                                          requestKey: currentDeliveryRequestKey!,
-                                          option,
-                                        });
-                                      }}
-                                      className="mt-1 accent-[color:var(--sf-accent)]"
-                                    />
-                                    <span className="min-w-0 flex-1">
-                                      <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                                        <span className="font-sans text-sm font-semibold text-[color:var(--sf-accent)]">
-                                          {option.providerName}
-                                        </span>
-                                        <span className="font-sans text-sm font-bold tabular-nums text-[color:var(--sf-accent)]">
-                                          {formatMajorAmount(
-                                            option.fee,
-                                            option.currency,
-                                          )}
-                                        </span>
-                                      </span>
-                                      <span className="mt-1 block font-sans text-xs text-[color:var(--sf-accent-text-60)]">
-                                        {option.estimatedDeliveryTime}
-                                      </span>
-                                      {!option.available &&
-                                      option.unavailableReason ? (
-                                        <span className="mt-2 block font-sans text-xs text-red-700">
-                                          {option.unavailableReason}
-                                        </span>
-                                      ) : null}
-                                      {expired ? (
-                                        <span className="mt-2 block font-sans text-xs text-red-700">
-                                          This quote has expired. Refresh delivery options.
-                                        </span>
-                                      ) : null}
-                                    </span>
-                                  </label>
-                                );
-                              })
-                            : null}
                         </fieldset>
-                      ) : quoteLoading || deliveryOptionsLoading ? (
+                      ) : quoteLoading ? (
                         <p className="mt-4 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-                          Finding delivery options for your address…
+                          Finding courier options for your address…
                         </p>
                       ) : (
                         <p className="mt-4 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-                          Enter a complete address to see delivery options.
+                          Enter street address and city to see delivery options.
                         </p>
                       )}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
+=======
+                    </div>
+                  </section>
+=======
+                  </div>
+                  {showDeliveryOptions ? (
+                    <section
+                      className="mt-7 border-t border-[color:var(--sf-accent-border-10)] pt-6"
+                      aria-live="polite"
+                    >
+                      <h3 className="font-sans text-sm font-bold text-[color:var(--sf-accent)]">
+                        Delivery Options
+                      </h3>
+                      {deliveryOptionsLoading ? (
+                        <p className="mt-3 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
+                          Checking delivery options…
+                        </p>
+                      ) : null}
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
                       {deliveryOptionsQuery.isError ? (
                         <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <p className="font-sans text-xs text-red-700" role="alert">
+                          <p className="font-sans text-sm text-red-700" role="alert">
                             {deliveryOptionsQuery.error instanceof Error
                               ? deliveryOptionsQuery.error.message
-                              : "Uber Direct options could not be loaded."}
+                              : "Delivery options could not be loaded."}
                           </p>
                           <button
                             type="button"
                             disabled={deliveryOptionsQuery.isFetching}
                             onClick={() => void deliveryOptionsQuery.refetch()}
-                            className="font-sans text-xs font-semibold text-[color:var(--sf-accent)] underline disabled:opacity-50"
+                            className="font-sans text-sm font-semibold text-[color:var(--sf-accent)] underline disabled:opacity-50"
                           >
-                            {deliveryOptionsQuery.isFetching ? "Retrying…" : "Retry Uber Direct"}
+                            {deliveryOptionsQuery.isFetching
+                              ? "Retrying…"
+                              : "Retry"}
                           </button>
                         </div>
                       ) : null}
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
@@ -1068,6 +1112,72 @@ export function PublicCartCheckoutClient({
 >>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
                     </div>
                   </section>
+=======
+                      {deliveryOptions.length > 0 ? (
+                        <fieldset className="mt-3 space-y-3">
+                          <legend className="sr-only">
+                            Choose a delivery option
+                          </legend>
+                          {deliveryOptions.map((option) => {
+                            const checked =
+                              selectedDeliveryOption?.quoteId === option.quoteId;
+                            return (
+                              <label
+                                key={option.quoteId}
+                                className={`flex gap-3 border border-[color:var(--sf-accent-border-15)] p-4 ${
+                                  option.available
+                                    ? "cursor-pointer"
+                                    : "opacity-70"
+                                } ${checked ? "bg-[color:var(--sf-nav-hover-wash)]" : "bg-white"}`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="deliveryOption"
+                                  value={option.quoteId}
+                                  checked={checked}
+                                  disabled={
+                                    !option.available ||
+                                    deliveryOptionsQuery.isFetching
+                                  }
+                                  onChange={() =>
+                                    setSelectedDeliveryState({
+                                      requestKey: currentDeliveryRequestKey!,
+                                      option,
+                                    })
+                                  }
+                                  className="mt-1 accent-[color:var(--sf-accent)]"
+                                />
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                                    <span className="font-sans text-sm font-semibold text-[color:var(--sf-accent)]">
+                                      {option.providerName}
+                                    </span>
+                                    <span className="font-sans text-sm font-bold tabular-nums text-[color:var(--sf-accent)]">
+                                      {formatMajorAmount(
+                                        option.fee,
+                                        option.currency,
+                                      )}
+                                    </span>
+                                  </span>
+                                  <span className="mt-1 block font-sans text-xs text-[color:var(--sf-accent-text-60)]">
+                                    {option.estimatedDeliveryTime}
+                                  </span>
+                                  {!option.available &&
+                                  option.unavailableReason ? (
+                                    <span className="mt-2 block font-sans text-xs text-red-700">
+                                      {option.unavailableReason}
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </fieldset>
+                      ) : null}
+                    </section>
+                  ) : null}
+>>>>>>> Stashed changes
+>>>>>>> parent of 7838d12 (Uber Delivery Setup)
                 </form>
               )}
             </div>
@@ -1108,18 +1218,11 @@ export function PublicCartCheckoutClient({
               ? formatMajorAmount(subtotalMajor, currency)
               : (cart?.subtotalLabel ?? "—")
           }
-          shippingLabel={
-            selectedDeliveryOption
-              ? formatMajorAmount(
-                  selectedDeliveryOption.fee,
-                  selectedDeliveryOption.currency,
-                )
-              : shippingSummaryLabel(
-                  selectedOption,
-                  shippingRequired,
-                  currency,
-                )
-          }
+          shippingLabel={shippingSummaryLabel(
+            selectedOption,
+            shippingRequired,
+            currency,
+          )}
           totalLabel={
             hasSubtotal
               ? formatMajorAmount(orderTotalMajor, currency)
