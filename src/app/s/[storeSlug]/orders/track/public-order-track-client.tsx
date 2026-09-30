@@ -8,9 +8,13 @@ import {
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
 import { OrderStatusTimeline } from "@/components/storefront/order-status-timeline";
@@ -88,6 +92,14 @@ function OrderResultCard({
         <StorefrontButton variant="outline" disabled={shippingQuery.isFetching} onClick={() => void shippingQuery.refetch()}>
           {shippingQuery.isFetching ? "Updating…" : "Refresh delivery status"}
         </StorefrontButton>
+<<<<<<< HEAD
+=======
+      ) : null}
+      <CustomerCancellationPanel storeSlug={storeSlug} orderId={order.id} token={token} />
+
+      {order.delivery ? (
+        <DeliveryTracking delivery={order.delivery} variant="storefront" />
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
       ) : null}
       <CustomerCancellationPanel storeSlug={storeSlug} orderId={order.id} token={token} />
 
@@ -99,12 +111,18 @@ function OrderResultCard({
           {formatShipTo(order) || "—"}
         </p>
 <<<<<<< HEAD
+<<<<<<< HEAD
         {!isUberDirectOrder ? (
           <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
         ) : null}
 =======
         <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+        {!isUberDirectOrder ? (
+          <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
+        ) : null}
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
       </div>
 
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">

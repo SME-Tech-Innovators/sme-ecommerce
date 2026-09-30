@@ -1,6 +1,7 @@
 "use client";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 =======
 import { useMemo, useState, useSyncExternalStore } from "react";
@@ -9,6 +10,12 @@ import { OrderCancellationPanel } from "@/components/dashboard/order-cancellatio
 import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
 import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
 <<<<<<< HEAD
+=======
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { OrderCancellationPanel } from "@/components/dashboard/order-cancellation-panel";
+import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
+import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 import { Truck } from "lucide-react";
 import { toast } from "sonner";
 import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
@@ -18,8 +25,11 @@ import {
   useRefreshUberDirectDeliveryStatus,
   useUpdateMerchantOrderStatus,
 } from "@/hooks/use-orders";
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
@@ -88,11 +98,17 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
 
   const ordersQuery = useMerchantOrders(workspaceId, signedIn === true);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
   const bookDelivery = useBookUberDirectDelivery(workspaceId);
   const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
+  const bookDelivery = useBookUberDirectDelivery(workspaceId);
+  const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
   const orders = useMemo(() => {
     const list = ordersQuery.data ?? [];
@@ -107,6 +123,9 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
     orders.find((order) => order.id === selectedId) ?? null;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
   async function onUpdateStatus(
     orderId: string,
     status: "processing" | "fulfilled" | "cancelled",
@@ -170,8 +189,11 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
     }
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
   if (!authReady || (signedIn && ordersQuery.isLoading)) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
@@ -316,6 +338,9 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
 
             <OrderReturnPanel key={`${workspaceId}:${selected.id}`} workspaceId={workspaceId} order={selected} />
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
             {showDeliverySection ? (
               <section className="space-y-3 border border-primary-blue/10 bg-white p-3">
                 {selected.delivery ? (
@@ -404,8 +429,11 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
                 </div>
               </div>
             ) : null}
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
             <ul className="divide-y divide-primary-blue/10 border border-primary-blue/10 bg-white">
               {selected.items.map((item) => (

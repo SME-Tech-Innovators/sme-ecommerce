@@ -38,12 +38,18 @@ import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 import type {
   CustomerDeliveryOption,
   CustomerDeliveryOptionsInput,
 } from "@/types/delivery";
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
@@ -77,6 +83,9 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 function toDeliveryOptionsInput(
   address: ShippingAddress,
   totalAmountMajor: number | null | undefined,
@@ -118,8 +127,11 @@ function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
   return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -266,6 +278,9 @@ export function PublicCartCheckoutClient({
     return () => window.clearTimeout(timer);
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
     line1: "",
@@ -371,8 +386,11 @@ export function PublicCartCheckoutClient({
     setDeliveryAddress((current) => ({ ...current, [field]: value }));
     setSelectedDeliveryState(null);
   }
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 
   if (storefrontQuery.isLoading) {
     return (
@@ -446,6 +464,9 @@ export function PublicCartCheckoutClient({
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
     if (
       selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
       isDeliveryQuoteExpired(selectedDeliveryState.option)
@@ -456,8 +477,11 @@ export function PublicCartCheckoutClient({
       throw new Error("Your Uber Direct quote expired. Request a new quote.");
     }
 
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -820,6 +844,9 @@ export function PublicCartCheckoutClient({
                       <StreetAddressAutocomplete
                         className={fieldClass}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
                         onChange={(event) =>
                           updateDeliveryAddress("line1", event.target.value)
                         }
@@ -835,9 +862,12 @@ export function PublicCartCheckoutClient({
                           setSelectedDeliveryState(null);
                           bumpAddressQuote();
                         }}
+<<<<<<< HEAD
 =======
                         onAddressApplied={() => bumpAddressQuote()}
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
@@ -1011,6 +1041,9 @@ export function PublicCartCheckoutClient({
                         </p>
                       )}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
                       {deliveryOptionsQuery.isError ? (
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <p className="font-sans text-xs text-red-700" role="alert">
@@ -1028,8 +1061,11 @@ export function PublicCartCheckoutClient({
                           </button>
                         </div>
                       ) : null}
+<<<<<<< HEAD
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
                     </div>
                   </section>
                 </form>

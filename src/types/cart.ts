@@ -112,10 +112,15 @@ export type CheckoutBody = {
   };
   shippingSelection?: CheckoutShippingSelection;
 <<<<<<< HEAD
+<<<<<<< HEAD
   deliveryMethod?: "UBER_DIRECT";
   deliveryQuoteId?: string;
 =======
 >>>>>>> parent of aa0ad3e (Uber Delivery Setup)
+=======
+  deliveryMethod?: "UBER_DIRECT";
+  deliveryQuoteId?: string;
+>>>>>>> parent of 34b807a (Revert "Uber Delivery Setup")
 };
 
 export type CartResult = { ok: true; data: Cart } | ParsedApiFailure;
