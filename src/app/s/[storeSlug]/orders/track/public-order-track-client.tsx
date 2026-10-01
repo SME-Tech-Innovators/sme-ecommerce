@@ -7,12 +7,8 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< Updated upstream
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
-=======
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
->>>>>>> Stashed changes
 import { OrderStatusTimeline } from "@/components/storefront/order-status-timeline";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
@@ -83,10 +79,6 @@ function OrderResultCard({
       </StorefrontButton>
       <CustomerCancellationPanel storeSlug={storeSlug} orderId={order.id} token={token} />
 
-      {order.delivery ? (
-        <DeliveryTracking delivery={order.delivery} variant="storefront" />
-      ) : null}
-
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">
         <h3 className="font-sans text-xs font-bold uppercase tracking-[0.14em] text-[color:var(--sf-accent)]">
           Ship to
@@ -94,16 +86,7 @@ function OrderResultCard({
         <p className="mt-2 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-70)]">
           {formatShipTo(order) || "—"}
         </p>
-<<<<<<< Updated upstream
         <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
-=======
-        {!order.delivery ? (
-          <p className="mt-3 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-            Delivery timing is arranged by the store. Carrier tracking is not
-            available for this order.
-          </p>
-        ) : null}
->>>>>>> Stashed changes
       </div>
 
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">
