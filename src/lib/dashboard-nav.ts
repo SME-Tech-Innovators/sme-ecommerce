@@ -148,11 +148,11 @@ export const DASHBOARD_SECTIONS: readonly DashboardSectionConfig[] = [
     label: "Settings",
     icon: "gear",
     panelTitle: "Settings",
-    panelSubtitle: "Payments, delivery, WhatsApp catalog, and workspace preferences.",
+    panelSubtitle: "Payments, delivery, and workspace preferences.",
     empty: {
       title: "Workspace settings",
       description:
-        "Configure payments, delivery, and WhatsApp catalog sync from the tabs below.",
+        "Configure payments and delivery from the tabs below.",
     },
   },
 ] as const;
