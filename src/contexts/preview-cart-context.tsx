@@ -32,17 +32,6 @@ export type PreviewCartContextValue = {
   totalLabel?: string | null;
 <<<<<<< Updated upstream
   /** Major units from backend cart (same as subtotalLabel). */
-<<<<<<< HEAD
-<<<<<<< HEAD
-  subtotalAmount?: number | null;
-  totalAmount?: number | null;
-  currency?: string | null;
-=======
-  subtotalAmount?: number;
-  totalAmount?: number;
-  currency?: string;
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
   subtotalAmount?: number;
   totalAmount?: number;
   currency?: string;
@@ -51,7 +40,6 @@ export type PreviewCartContextValue = {
   totalAmountMinor?: number | null;
   currency?: string | null;
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;

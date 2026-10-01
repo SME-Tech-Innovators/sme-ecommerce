@@ -9,14 +9,7 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 <<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { StorefrontCheckoutConfirmModal } from "@/components/storefront/storefront-checkout-confirm-modal";
 import { StorefrontOrderSuccessModal } from "@/components/storefront/storefront-order-success-modal";

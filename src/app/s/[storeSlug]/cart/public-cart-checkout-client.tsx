@@ -25,6 +25,7 @@ import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-ro
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { usePreviewCartOptional } from "@/contexts/preview-cart-context";
 import { useCheckout } from "@/hooks/use-checkout";
+import { useCustomerDeliveryOptions } from "@/hooks/use-delivery-options";
 import { usePublicStorefront } from "@/hooks/use-public-storefront";
 import { StreetAddressAutocomplete } from "@/components/storefront/street-address-autocomplete";
 import {
@@ -42,28 +43,33 @@ import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
 <<<<<<< Updated upstream
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 =======
 import { formatMajorAmount, formatMinorAmount } from "@/lib/format-money";
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import type {
   CustomerDeliveryOption,
   CustomerDeliveryOptionsInput,
 } from "@/types/delivery";
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
 };
 
 type Step = "cart" | "checkout";
+
+type DeliveryAddress = {
+  line1: string;
+  line2: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+};
+
+type SelectedDeliveryOptionState = {
+  requestKey: string;
+  option: CustomerDeliveryOption;
+};
 
 const fieldClass =
   "mt-2 w-full border-0 bg-[color:var(--sf-nav-hover-wash)] px-4 py-3 font-sans text-sm text-[color:var(--sf-accent)] outline-none placeholder:text-[color:var(--sf-accent-text-45)] focus:ring-2 focus:ring-[color:var(--sf-accent)]/15";
@@ -91,11 +97,7 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   };
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 =======
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 function toDeliveryOptionsInput(
   address: DeliveryAddress,
   totalAmountMinor: number | null | undefined,
@@ -136,12 +138,7 @@ function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
   return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
 }
 
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -289,12 +286,7 @@ export function PublicCartCheckoutClient({
     }, 650);
     return () => window.clearTimeout(timer);
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 =======
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
     line1: "",
     line2: "",
@@ -400,12 +392,7 @@ export function PublicCartCheckoutClient({
     setDeliveryAddress((current) => ({ ...current, [field]: value }));
     setSelectedDeliveryState(null);
   }
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
   if (storefrontQuery.isLoading) {
     return (
@@ -476,23 +463,7 @@ export function PublicCartCheckoutClient({
       throw new Error("Choose a delivery option before paying.");
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if (
-      selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-      isDeliveryQuoteExpired(selectedDeliveryState.option)
-    ) {
-      setSelectedDeliveryState(null);
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-      throw new Error("Your Uber Direct quote expired. Request a new quote.");
-    }
-
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 <<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -900,27 +871,6 @@ export function PublicCartCheckoutClient({
                       <StreetAddressAutocomplete
 <<<<<<< Updated upstream
                         className={fieldClass}
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        onChange={(event) =>
-                          updateDeliveryAddress("line1", event.target.value)
-                        }
-                        onAddressApplied={(address) => {
-                          setDeliveryAddress((current) => ({
-                            ...current,
-                            line1: address.line1,
-                            city: address.city,
-                            province: address.province,
-                            postalCode: address.postalCode,
-                            country: address.country,
-                          }));
-                          setSelectedDeliveryState(null);
-                          bumpAddressQuote();
-                        }}
-=======
-                        onAddressApplied={() => bumpAddressQuote()}
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
                         onAddressApplied={() => bumpAddressQuote()}
 =======
                         value={deliveryAddress.line1}
@@ -929,12 +879,18 @@ export function PublicCartCheckoutClient({
                         }
                         className={fieldClass}
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
                       Apartment, suite (optional)
-                      <input name="address2" className={fieldClass} />
+                      <input
+                        name="address2"
+                        value={deliveryAddress.line2}
+                        onChange={(event) =>
+                          updateDeliveryAddress("line2", event.target.value)
+                        }
+                        className={fieldClass}
+                      />
                     </label>
                     <label className={labelClass}>
                       City
@@ -942,6 +898,10 @@ export function PublicCartCheckoutClient({
                         required
                         name="city"
                         autoComplete="address-level2"
+                        value={deliveryAddress.city}
+                        onChange={(event) =>
+                          updateDeliveryAddress("city", event.target.value)
+                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -952,6 +912,10 @@ export function PublicCartCheckoutClient({
                         required
                         name="region"
                         autoComplete="address-level1"
+                        value={deliveryAddress.province}
+                        onChange={(event) =>
+                          updateDeliveryAddress("province", event.target.value)
+                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -962,6 +926,10 @@ export function PublicCartCheckoutClient({
                         required
                         name="postalCode"
                         autoComplete="postal-code"
+                        value={deliveryAddress.postalCode}
+                        onChange={(event) =>
+                          updateDeliveryAddress("postalCode", event.target.value)
+                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -969,9 +937,13 @@ export function PublicCartCheckoutClient({
                     <label className={labelClass}>
                       Country
                       <input
+                        required
                         name="country"
-                        defaultValue="ZA"
                         autoComplete="country"
+                        value={deliveryAddress.country}
+                        onChange={(event) =>
+                          updateDeliveryAddress("country", event.target.value)
+                        }
                         className={fieldClass}
                         onBlur={() => bumpAddressQuote()}
                       />
@@ -1031,9 +1003,6 @@ export function PublicCartCheckoutClient({
                           Enter street address and city to see delivery options.
                         </p>
                       )}
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
                     </div>
                   </section>
 =======
@@ -1051,7 +1020,6 @@ export function PublicCartCheckoutClient({
                           Checking delivery options…
                         </p>
                       ) : null}
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
                       {deliveryOptionsQuery.isError ? (
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <p className="font-sans text-sm text-red-700" role="alert">
@@ -1071,12 +1039,6 @@ export function PublicCartCheckoutClient({
                           </button>
                         </div>
                       ) : null}
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-                    </div>
-                  </section>
-=======
                       {deliveryOptions.length > 0 ? (
                         <fieldset className="mt-3 space-y-3">
                           <legend className="sr-only">
@@ -1141,7 +1103,6 @@ export function PublicCartCheckoutClient({
                     </section>
                   ) : null}
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
                 </form>
               )}
             </div>

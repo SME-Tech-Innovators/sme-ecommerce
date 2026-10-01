@@ -1,4 +1,5 @@
 import type { ParsedApiFailure } from "@/apis/api-result";
+import type { UberDirectDelivery } from "@/types/delivery";
 
 export type CartStatus = "active" | "converted" | "abandoned";
 export type OrderStatus =
@@ -73,6 +74,11 @@ export type Order = {
   currency: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  deliveryMethod?: string | null;
+  deliveryQuoteId?: string | null;
+  deliveryQuoteExpiresAt?: string | null;
+  deliveryEstimatedDeliveryTime?: string | null;
+  delivery?: UberDirectDelivery | null;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;
@@ -112,18 +118,10 @@ export type CheckoutBody = {
   };
 <<<<<<< Updated upstream
   shippingSelection?: CheckoutShippingSelection;
-<<<<<<< HEAD
-<<<<<<< HEAD
-  deliveryMethod?: "UBER_DIRECT";
-  deliveryQuoteId?: string;
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 =======
   deliveryMethod?: "UBER_DIRECT";
   deliveryQuoteId?: string;
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 };
 
 export type CartResult = { ok: true; data: Cart } | ParsedApiFailure;

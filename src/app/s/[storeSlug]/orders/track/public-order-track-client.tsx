@@ -7,14 +7,7 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 <<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
 =======
@@ -90,6 +83,10 @@ function OrderResultCard({
       </StorefrontButton>
       <CustomerCancellationPanel storeSlug={storeSlug} orderId={order.id} token={token} />
 
+      {order.delivery ? (
+        <DeliveryTracking delivery={order.delivery} variant="storefront" />
+      ) : null}
+
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">
         <h3 className="font-sans text-xs font-bold uppercase tracking-[0.14em] text-[color:var(--sf-accent)]">
           Ship to
@@ -97,15 +94,6 @@ function OrderResultCard({
         <p className="mt-2 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-70)]">
           {formatShipTo(order) || "—"}
         </p>
-<<<<<<< HEAD
-<<<<<<< HEAD
-        {!isUberDirectOrder ? (
-          <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
-        ) : null}
-=======
-        <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
 <<<<<<< Updated upstream
         <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
 =======
@@ -116,7 +104,6 @@ function OrderResultCard({
           </p>
         ) : null}
 >>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
       </div>
 
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">
