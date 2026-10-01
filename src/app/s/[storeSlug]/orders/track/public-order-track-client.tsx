@@ -7,19 +7,8 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-<<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { usePublicOrderShipping } from "@/hooks/use-public-order-shipping";
-=======
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
->>>>>>> Stashed changes
 import { OrderStatusTimeline } from "@/components/storefront/order-status-timeline";
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
@@ -97,26 +86,7 @@ function OrderResultCard({
         <p className="mt-2 font-sans text-sm leading-relaxed text-[color:var(--sf-accent-text-70)]">
           {formatShipTo(order) || "—"}
         </p>
-<<<<<<< HEAD
-<<<<<<< HEAD
-        {!isUberDirectOrder ? (
-          <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
-        ) : null}
-=======
         <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-<<<<<<< Updated upstream
-        <OrderShippingStatusCard storeSlug={storeSlug} orderId={order.id} />
-=======
-        {!order.delivery ? (
-          <p className="mt-3 font-sans text-xs text-[color:var(--sf-accent-text-45)]">
-            Delivery timing is arranged by the store. Carrier tracking is not
-            available for this order.
-          </p>
-        ) : null}
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
       </div>
 
       <div className="border border-[color:var(--sf-accent-border-10)] bg-white p-5">

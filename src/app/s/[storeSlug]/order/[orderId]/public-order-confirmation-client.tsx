@@ -9,20 +9,9 @@ import {
   StorefrontButton,
   StorefrontButtonLink,
 } from "@/components/storefront/storefront-button";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-<<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderShippingStatusCard } from "@/components/storefront/order-shipping-status-card";
 import { StorefrontCheckoutConfirmModal } from "@/components/storefront/storefront-checkout-confirm-modal";
 import { StorefrontOrderSuccessModal } from "@/components/storefront/storefront-order-success-modal";
-=======
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
->>>>>>> Stashed changes
 import { StorefrontThemeRoot } from "@/components/storefront/storefront-theme-root";
 import { StorefrontSiteFooter, StorefrontSiteHeader } from "@/components/storefront/storefront-chrome";
 import { useOrderConfirmation, useVerifyOrderPayment } from "@/hooks/use-checkout";
@@ -409,12 +398,6 @@ export function PublicOrderConfirmationClient({
               </div>
             ) : null}
           </section>
-
-          {order.delivery ? (
-            <div className="mt-8">
-              <DeliveryTracking delivery={order.delivery} variant="storefront" />
-            </div>
-          ) : null}
 
           <div className="mt-8 flex flex-wrap gap-3">
             <StorefrontButtonLink href={basePath} className="rounded-none">

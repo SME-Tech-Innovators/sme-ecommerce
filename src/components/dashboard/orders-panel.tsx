@@ -1,40 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-=======
 import { useMemo, useState, useSyncExternalStore } from "react";
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-<<<<<<< Updated upstream
-import { useMemo, useState, useSyncExternalStore } from "react";
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { OrderCancellationPanel } from "@/components/dashboard/order-cancellation-panel";
 import { OrderReturnPanel } from "@/components/dashboard/order-return-panel";
 import { useMerchantOrders } from "@/hooks/use-orders";
 import { OrderShippingPanel } from "@/components/dashboard/order-shipping-panel";
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-import { useEffect, useMemo, useRef, useState } from "react";
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-import { Truck } from "lucide-react";
-import { toast } from "sonner";
-import { DeliveryTracking } from "@/components/storefront/delivery-tracking";
-import {
-  useBookUberDirectDelivery,
-  useMerchantOrders,
-  useRefreshUberDirectDeliveryStatus,
-  useUpdateMerchantOrderStatus,
-} from "@/hooks/use-orders";
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 import { getStoredAuthSession } from "@/lib/auth-login-storage";
 import { formatMajorAmount } from "@/lib/format-money";
 import { orderStatusLabel } from "@/lib/order-status";
@@ -82,31 +52,7 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   const authReady = signedIn !== null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-<<<<<<< Updated upstream
   const ordersQuery = useMerchantOrders(workspaceId, signedIn === true);
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
-  const bookDelivery = useBookUberDirectDelivery(workspaceId);
-  const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-=======
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setSignedIn(Boolean(getStoredAuthSession()?.accessToken));
-      setAuthReady(true);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  const ordersQuery = useMerchantOrders(workspaceId, signedIn);
-  const updateStatus = useUpdateMerchantOrderStatus(workspaceId);
-  const bookDelivery = useBookUberDirectDelivery(workspaceId);
-  const refreshDelivery = useRefreshUberDirectDeliveryStatus(workspaceId);
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
   const orders = useMemo(() => {
     const list = ordersQuery.data ?? [];
@@ -120,81 +66,6 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
   const selected: Order | null =
     orders.find((order) => order.id === selectedId) ?? null;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-  async function onUpdateStatus(
-    orderId: string,
-    status: "processing" | "fulfilled" | "cancelled",
-  ) {
-    try {
-      const next = await updateStatus.mutateAsync({ orderId, status });
-      setSelectedId(next.id);
-      toast.success(`Order ${orderStatusLabel(next.status).toLowerCase()}`);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not update order.",
-      );
-    }
-  }
-
-  async function onBookDelivery(order: Order) {
-    const quoteId = order.deliveryQuoteId?.trim();
-    if (
-      !quoteId ||
-      order.delivery ||
-      order.paymentStatus !== "paid" ||
-      order.deliveryMethod?.toUpperCase() !== "UBER_DIRECT"
-    ) {
-      return;
-    }
-    if (order.deliveryQuoteExpiresAt) {
-      const expiresAt = Date.parse(order.deliveryQuoteExpiresAt);
-      if (
-        !Number.isFinite(expiresAt) ||
-        (currentTime > 0 && expiresAt <= currentTime)
-      ) {
-        toast.error("This delivery quote has expired.");
-        return;
-      }
-    }
-    if (bookingLocks.current.has(order.id)) return;
-
-    bookingLocks.current.add(order.id);
-    try {
-      await bookDelivery.mutateAsync({ orderId: order.id, quoteId });
-      toast.success("Uber Direct delivery booked");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not book delivery.",
-      );
-    } finally {
-      bookingLocks.current.delete(order.id);
-    }
-  }
-
-  async function onRefreshDelivery(orderId: string) {
-    try {
-      await refreshDelivery.mutateAsync({ orderId });
-      toast.success("Delivery status updated");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not refresh delivery status.",
-      );
-    }
-  }
-
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
   if (!authReady || (signedIn && ordersQuery.isLoading)) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-16 font-sans text-sm text-muted-foreground">
@@ -333,111 +204,11 @@ export function OrdersPanel({ workspaceId }: OrdersPanelProps) {
               </p>
             </div>
 
-<<<<<<< Updated upstream
             <OrderCancellationPanel key={`cancellation:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
 
             <OrderShippingPanel key={`shipping:${workspaceId}:${selected.id}`} workspaceId={workspaceId} orderId={selected.id} />
 
             <OrderReturnPanel key={`${workspaceId}:${selected.id}`} workspaceId={workspaceId} order={selected} />
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-            {showDeliverySection ? (
-              <section className="space-y-3 border border-primary-blue/10 bg-white p-3">
-                {selected.delivery ? (
-                  <DeliveryTracking
-                    delivery={selected.delivery}
-                    variant="dashboard"
-                    feeLabel={formatMinorAmount(
-                      selected.shippingAmount,
-                      selected.currency,
-                    )}
-                    estimatedDeliveryTime={
-                      selected.deliveryEstimatedDeliveryTime
-                    }
-                    onRefresh={() => void onRefreshDelivery(selected.id)}
-                    isRefreshing={refreshDelivery.isPending}
-                    refreshError={
-                      refreshDelivery.variables?.orderId === selected.id &&
-                      refreshDelivery.error instanceof Error
-                        ? refreshDelivery.error.message
-                        : null
-                    }
-                  />
-                ) : canBookDelivery ? (
-                  <button
-                    type="button"
-                    disabled={bookDelivery.isPending}
-                    onClick={() => void onBookDelivery(selected)}
-                    className="inline-flex items-center gap-2 bg-primary-blue px-3 py-2 font-sans text-xs font-semibold text-white hover:bg-primary-blue/90 disabled:opacity-50"
-                  >
-                    <Truck aria-hidden className="size-4" />
-                    {bookDelivery.isPending
-                      ? "Booking delivery…"
-                      : "Book Uber Courier"}
-                  </button>
-                ) : selectedQuoteExpired ? (
-                  <div>
-                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
-                      Delivery · Uber Direct
-                    </p>
-                    <p className="mt-1 font-sans text-xs text-red-700" role="alert">
-                      This delivery quote has expired.
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
-                      Delivery · Uber Direct
-                    </p>
-                    <p className="mt-1 font-sans text-xs text-muted-foreground">
-                      {formatMinorAmount(selected.shippingAmount, selected.currency)}
-                      {selected.deliveryEstimatedDeliveryTime
-                        ? ` · ${selected.deliveryEstimatedDeliveryTime}`
-                        : null}
-                    </p>
-                  </div>
-                )}
-              </section>
-            ) : null}
-
-            {nextStatusActions(selected.status).length > 0 ? (
-              <div className="space-y-2 border border-primary-blue/10 bg-white p-3">
-                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-blue/55">
-                  Fulfilment
-                </p>
-                <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
-                  Update status for the customer order page.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {nextStatusActions(selected.status).map((action) => (
-                    <button
-                      key={action.status}
-                      type="button"
-                      disabled={updateStatus.isPending}
-                      onClick={() =>
-                        void onUpdateStatus(selected.id, action.status)
-                      }
-                      className={`px-3 py-1.5 font-sans text-xs font-semibold ${
-                        action.status === "cancelled"
-                          ? "border border-red-700/20 text-red-800 hover:bg-red-50"
-                          : "bg-primary-blue text-white hover:opacity-95"
-                      } disabled:opacity-50`}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
             <ul className="divide-y divide-primary-blue/10 border border-primary-blue/10 bg-white">
               {selected.items.map((item) => (

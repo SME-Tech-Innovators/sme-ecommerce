@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-<<<<<<< Updated upstream
 import {
   type FormEvent,
   useCallback,
@@ -10,9 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-=======
-import { type FormEvent, useEffect, useState } from "react";
->>>>>>> Stashed changes
 import { toast } from "sonner";
 import { getAppOrigin } from "@/apis/config";
 import { postShippingQuote } from "@/apis/shipping";
@@ -39,25 +35,8 @@ import {
   savePaystackReturnPath,
 } from "@/lib/paystack-return";
 import { publicStorefrontBasePath } from "@/lib/preview-shop-href";
-<<<<<<< Updated upstream
 import { shippingOptionLabel } from "@/lib/shipping-option-label";
 import type { ShippingAddress, ShippingOption } from "@/types/shipping";
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-import { formatMajorAmount, formatMinorAmount } from "@/lib/format-money";
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-import type {
-  CustomerDeliveryOption,
-  CustomerDeliveryOptionsInput,
-} from "@/types/delivery";
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
 type PublicCartCheckoutClientProps = {
   storeSlug: string;
@@ -71,7 +50,6 @@ const fieldClass =
 const labelClass =
   "font-sans text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--sf-accent)]";
 
-<<<<<<< Updated upstream
 function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   const line1 = String(new FormData(form).get("address") ?? "").trim();
   const line2 = String(new FormData(form).get("address2") ?? "").trim();
@@ -91,57 +69,6 @@ function readShippingAddress(form: HTMLFormElement): ShippingAddress | null {
   };
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-function toDeliveryOptionsInput(
-  address: DeliveryAddress,
-  totalAmountMinor: number | null | undefined,
-): CustomerDeliveryOptionsInput | null {
-  const line1 = address.line1.trim();
-  const city = address.city.trim();
-  const province = address.province.trim();
-  const postalCode = address.postalCode.trim();
-  const country = address.country.trim();
-
-  if (
-    !line1 ||
-    !city ||
-    !province ||
-    !postalCode ||
-    !country ||
-    totalAmountMinor == null ||
-    !Number.isFinite(totalAmountMinor)
-  ) {
-    return null;
-  }
-
-  return {
-    dropoffAddressLine1: line1,
-    dropoffAddressLine2: address.line2.trim() || null,
-    dropoffCity: city,
-    dropoffProvince: province,
-    dropoffPostalCode: postalCode,
-    dropoffCountry: country,
-    dropoffLatitude: 0,
-    dropoffLongitude: 0,
-    cartTotal: totalAmountMinor / 100,
-  };
-}
-
-function isDeliveryQuoteExpired(option: CustomerDeliveryOption): boolean {
-  const expiresAt = Date.parse(option.expiresAt);
-  return !Number.isFinite(expiresAt) || expiresAt <= Date.now();
-}
-
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 function CheckoutSteps({ step }: { step: Step }) {
   const steps = [
     { id: "cart" as const, label: "Cart" },
@@ -191,7 +118,6 @@ export function PublicCartCheckoutClient({
   const checkoutFormRef = useRef<HTMLFormElement>(null);
   const lastQuoteKeyRef = useRef<string | null>(null);
   const [step, setStep] = useState<Step>("cart");
-<<<<<<< Updated upstream
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [shippingRequired, setShippingRequired] = useState(false);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -289,123 +215,6 @@ export function PublicCartCheckoutClient({
     }, 650);
     return () => window.clearTimeout(timer);
   }, [addressQuoteTick, step, fetchDeliveryOptions]);
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-=======
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
-    line1: "",
-    line2: "",
-    city: "",
-    province: "",
-    postalCode: "",
-    country: "ZA",
-  });
-  const [debouncedDeliveryInput, setDebouncedDeliveryInput] =
-    useState<CustomerDeliveryOptionsInput | null>(null);
-  const [selectedDeliveryState, setSelectedDeliveryState] =
-    useState<SelectedDeliveryOptionState | null>(null);
-
-  const currentDeliveryInput = toDeliveryOptionsInput(
-    deliveryAddress,
-    cart?.totalAmountMinor,
-  );
-  const currentDeliveryRequestKey = currentDeliveryInput
-    ? JSON.stringify(currentDeliveryInput)
-    : null;
-
-  useEffect(() => {
-    const totalAmountMinor = cart?.totalAmountMinor;
-    const input = toDeliveryOptionsInput(deliveryAddress, totalAmountMinor);
-    const delay = input ? 450 : 0;
-    const timer = window.setTimeout(() => setDebouncedDeliveryInput(input), delay);
-    return () => window.clearTimeout(timer);
-  }, [
-    cart?.totalAmountMinor,
-    deliveryAddress,
-  ]);
-
-  const debouncedDeliveryRequestKey = debouncedDeliveryInput
-    ? JSON.stringify(debouncedDeliveryInput)
-    : null;
-  const activeDeliveryInput =
-    currentDeliveryRequestKey &&
-    currentDeliveryRequestKey === debouncedDeliveryRequestKey
-      ? debouncedDeliveryInput
-      : null;
-  const deliveryOptionsQuery = useCustomerDeliveryOptions(
-    storeSlug,
-    activeDeliveryInput,
-  );
-  const refetchDeliveryOptions = deliveryOptionsQuery.refetch;
-  const deliveryOptions = deliveryOptionsQuery.data?.options ?? [];
-  const selectedDeliveryOption =
-    selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-    deliveryOptions.some(
-      (option) =>
-        option.quoteId === selectedDeliveryState.option.quoteId &&
-        option.available &&
-        !isDeliveryQuoteExpired(selectedDeliveryState.option),
-    )
-      ? selectedDeliveryState.option
-      : null;
-  const deliveryOptionsLoading =
-    currentDeliveryInput !== null &&
-    (activeDeliveryInput === null || deliveryOptionsQuery.isFetching);
-  const showDeliveryOptions =
-    currentDeliveryInput !== null &&
-    (deliveryOptionsLoading ||
-      deliveryOptionsQuery.isError ||
-      deliveryOptions.length > 0);
-
-  useEffect(() => {
-    if (
-      !selectedDeliveryState ||
-      selectedDeliveryState.requestKey !== currentDeliveryRequestKey
-    ) {
-      return;
-    }
-    const selected = selectedDeliveryState.option;
-    const expiresAt = Date.parse(selected.expiresAt);
-    const expireSelection = () => {
-      setSelectedDeliveryState((current) =>
-        current?.option.quoteId === selected.quoteId ? null : current,
-      );
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-    };
-
-    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-      expireSelection();
-      return;
-    }
-
-    const timer = window.setTimeout(
-      expireSelection,
-      Math.min(expiresAt - Date.now(), 2_147_000_000),
-    );
-    return () => window.clearTimeout(timer);
-  }, [
-    currentDeliveryRequestKey,
-    selectedDeliveryState,
-    refetchDeliveryOptions,
-  ]);
-
-  function updateDeliveryAddress<K extends keyof DeliveryAddress>(
-    field: K,
-    value: DeliveryAddress[K],
-  ) {
-    setDeliveryAddress((current) => ({ ...current, [field]: value }));
-    setSelectedDeliveryState(null);
-  }
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
 
   if (storefrontQuery.isLoading) {
     return (
@@ -476,23 +285,6 @@ export function PublicCartCheckoutClient({
       throw new Error("Choose a delivery option before paying.");
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if (
-      selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-      isDeliveryQuoteExpired(selectedDeliveryState.option)
-    ) {
-      setSelectedDeliveryState(null);
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-      throw new Error("Your Uber Direct quote expired. Request a new quote.");
-    }
-
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-<<<<<<< Updated upstream
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
     return checkoutMutation.mutateAsync({
       cartId: cart.cartId,
       customer: {
@@ -551,40 +343,6 @@ export function PublicCartCheckoutClient({
       const payment = await payMutation.mutateAsync({
         orderId: order.id,
         callbackUrl,
-=======
-    if (
-      selectedDeliveryState?.requestKey === currentDeliveryRequestKey &&
-      isDeliveryQuoteExpired(selectedDeliveryState.option)
-    ) {
-      setSelectedDeliveryState(null);
-      toast.error("Your Uber Direct quote expired. Request a new quote.");
-      void refetchDeliveryOptions();
-      return;
-    }
-
-    try {
-      const order = await checkoutMutation.mutateAsync({
-        cartId: cart.cartId,
-        customer: {
-          name,
-          phone,
-          email,
-        },
-        shippingAddress: {
-          line1,
-          ...(line2 ? { line2 } : {}),
-          city,
-          province,
-          postalCode,
-          country,
-        },
-        ...(selectedDeliveryOption
-          ? {
-              deliveryMethod: "UBER_DIRECT" as const,
-              deliveryQuoteId: selectedDeliveryOption.quoteId,
-            }
-          : {}),
->>>>>>> Stashed changes
       });
       if (payment.reference) {
         savePaystackReturnPath(payment.reference, orderConfirmPath);
@@ -628,43 +386,21 @@ export function PublicCartCheckoutClient({
       <div className="flex justify-between gap-3">
         <span>Shipping</span>
         <span>
-<<<<<<< Updated upstream
           {selectedOption
             ? formatMinorAmount(selectedOption.amount, selectedOption.currency)
             : shippingRequired
               ? "Select option"
               : formatMinorAmount(0, currency)}
-=======
-          {selectedDeliveryOption
-            ? formatMajorAmount(
-                selectedDeliveryOption.fee,
-                selectedDeliveryOption.currency,
-              )
-            : "R0.00"}
->>>>>>> Stashed changes
         </span>
       </div>
       <div className="flex justify-between gap-3 border-t border-[color:var(--sf-accent-border-10)] pt-3 text-base font-bold">
         <span>Total</span>
-<<<<<<< Updated upstream
         <span className="tabular-nums">
           {cart
             ? hasSubtotal
               ? formatMajorAmount(orderTotalMajor, currency)
               : (cart.totalLabel ?? "—")
             : "—"}
-=======
-        <span>
-          {selectedDeliveryOption &&
-          cart?.totalAmountMinor != null &&
-          cart.currency === selectedDeliveryOption.currency
-            ? formatMinorAmount(
-                cart.totalAmountMinor +
-                  Math.round(selectedDeliveryOption.fee * 100),
-                cart.currency,
-              )
-            : (cart?.totalLabel ?? "—")}
->>>>>>> Stashed changes
         </span>
       </div>
     </div>
@@ -898,38 +634,8 @@ export function PublicCartCheckoutClient({
                     <label className={`${labelClass} sm:col-span-2`}>
                       Street address
                       <StreetAddressAutocomplete
-<<<<<<< Updated upstream
                         className={fieldClass}
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        onChange={(event) =>
-                          updateDeliveryAddress("line1", event.target.value)
-                        }
-                        onAddressApplied={(address) => {
-                          setDeliveryAddress((current) => ({
-                            ...current,
-                            line1: address.line1,
-                            city: address.city,
-                            province: address.province,
-                            postalCode: address.postalCode,
-                            country: address.country,
-                          }));
-                          setSelectedDeliveryState(null);
-                          bumpAddressQuote();
-                        }}
-=======
                         onAddressApplied={() => bumpAddressQuote()}
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-=======
-                        onAddressApplied={() => bumpAddressQuote()}
-=======
-                        value={deliveryAddress.line1}
-                        onChange={(event) =>
-                          updateDeliveryAddress("line1", event.target.value)
-                        }
-                        className={fieldClass}
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
                       />
                     </label>
                     <label className={`${labelClass} sm:col-span-2`}>
@@ -976,7 +682,6 @@ export function PublicCartCheckoutClient({
                         onBlur={() => bumpAddressQuote()}
                       />
                     </label>
-<<<<<<< Updated upstream
                     </div>
 
                     <div className="mt-6 border-t border-[color:var(--sf-accent-border-10)] pt-5">
@@ -1031,117 +736,8 @@ export function PublicCartCheckoutClient({
                           Enter street address and city to see delivery options.
                         </p>
                       )}
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
                     </div>
                   </section>
-=======
-                  </div>
-                  {showDeliveryOptions ? (
-                    <section
-                      className="mt-7 border-t border-[color:var(--sf-accent-border-10)] pt-6"
-                      aria-live="polite"
-                    >
-                      <h3 className="font-sans text-sm font-bold text-[color:var(--sf-accent)]">
-                        Delivery Options
-                      </h3>
-                      {deliveryOptionsLoading ? (
-                        <p className="mt-3 font-sans text-sm text-[color:var(--sf-accent-text-60)]">
-                          Checking delivery options…
-                        </p>
-                      ) : null}
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
-                      {deliveryOptionsQuery.isError ? (
-                        <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <p className="font-sans text-sm text-red-700" role="alert">
-                            {deliveryOptionsQuery.error instanceof Error
-                              ? deliveryOptionsQuery.error.message
-                              : "Delivery options could not be loaded."}
-                          </p>
-                          <button
-                            type="button"
-                            disabled={deliveryOptionsQuery.isFetching}
-                            onClick={() => void deliveryOptionsQuery.refetch()}
-                            className="font-sans text-sm font-semibold text-[color:var(--sf-accent)] underline disabled:opacity-50"
-                          >
-                            {deliveryOptionsQuery.isFetching
-                              ? "Retrying…"
-                              : "Retry"}
-                          </button>
-                        </div>
-                      ) : null}
-<<<<<<< HEAD
-=======
->>>>>>> parent of aa0ad3e (Uber Delivery Setup)
-                    </div>
-                  </section>
-=======
-                      {deliveryOptions.length > 0 ? (
-                        <fieldset className="mt-3 space-y-3">
-                          <legend className="sr-only">
-                            Choose a delivery option
-                          </legend>
-                          {deliveryOptions.map((option) => {
-                            const checked =
-                              selectedDeliveryOption?.quoteId === option.quoteId;
-                            return (
-                              <label
-                                key={option.quoteId}
-                                className={`flex gap-3 border border-[color:var(--sf-accent-border-15)] p-4 ${
-                                  option.available
-                                    ? "cursor-pointer"
-                                    : "opacity-70"
-                                } ${checked ? "bg-[color:var(--sf-nav-hover-wash)]" : "bg-white"}`}
-                              >
-                                <input
-                                  type="radio"
-                                  name="deliveryOption"
-                                  value={option.quoteId}
-                                  checked={checked}
-                                  disabled={
-                                    !option.available ||
-                                    deliveryOptionsQuery.isFetching
-                                  }
-                                  onChange={() =>
-                                    setSelectedDeliveryState({
-                                      requestKey: currentDeliveryRequestKey!,
-                                      option,
-                                    })
-                                  }
-                                  className="mt-1 accent-[color:var(--sf-accent)]"
-                                />
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                                    <span className="font-sans text-sm font-semibold text-[color:var(--sf-accent)]">
-                                      {option.providerName}
-                                    </span>
-                                    <span className="font-sans text-sm font-bold tabular-nums text-[color:var(--sf-accent)]">
-                                      {formatMajorAmount(
-                                        option.fee,
-                                        option.currency,
-                                      )}
-                                    </span>
-                                  </span>
-                                  <span className="mt-1 block font-sans text-xs text-[color:var(--sf-accent-text-60)]">
-                                    {option.estimatedDeliveryTime}
-                                  </span>
-                                  {!option.available &&
-                                  option.unavailableReason ? (
-                                    <span className="mt-2 block font-sans text-xs text-red-700">
-                                      {option.unavailableReason}
-                                    </span>
-                                  ) : null}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </fieldset>
-                      ) : null}
-                    </section>
-                  ) : null}
->>>>>>> Stashed changes
->>>>>>> parent of 72cc6bf (Merge pull request #15 from SME-Tech-Innovators/feat/Uber-delivery)
                 </form>
               )}
             </div>
